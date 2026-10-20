@@ -1,7 +1,7 @@
 """Server-side login sessions. Cookie carries a random token; DB keeps only its sha256."""
 from datetime import timedelta
 
-from fastapi import Response
+from fastapi import Request, Response
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -42,14 +42,29 @@ def delete_user_sessions(db: Session, user_id: int) -> None:
     db.commit()
 
 
-def set_session_cookie(response: Response, token: str) -> None:
+# Each site sends `X-App: customer|vendor` and gets its own cookie, so being a cook on the vendor site and a customer on
+# the customer site (both on the shared COOKIE_DOMAIN) don't overwrite each other. No header -> the plain COOKIE_NAME.
+APPS = ("customer", "vendor")
+
+
+def app_of(request: Request) -> str | None:
+    app = request.headers.get("x-app")
+    return app if app in APPS else None
+
+
+def cookie_name(app: str | None) -> str:
+    name = get_settings().COOKIE_NAME
+    return f"{name}_{app}" if app else name
+
+
+def set_session_cookie(response: Response, token: str, app: str | None = None) -> None:
     s = get_settings()
     response.set_cookie(
-        s.COOKIE_NAME, token, max_age=s.SESSION_DAYS * 86400, httponly=True,
+        cookie_name(app), token, max_age=s.SESSION_DAYS * 86400, httponly=True,
         secure=s.cookie_secure, samesite="lax", domain=s.COOKIE_DOMAIN, path="/",
     )
 
 
-def clear_session_cookie(response: Response) -> None:
+def clear_session_cookie(response: Response, app: str | None = None) -> None:
     s = get_settings()
-    response.delete_cookie(s.COOKIE_NAME, domain=s.COOKIE_DOMAIN, path="/")
+    response.delete_cookie(cookie_name(app), domain=s.COOKIE_DOMAIN, path="/")

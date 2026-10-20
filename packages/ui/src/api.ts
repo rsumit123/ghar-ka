@@ -3,6 +3,11 @@ import { brand } from './brand';
 /** Value the backend requires on multipart endpoints (CSRF defence). */
 export const CSRF_HEADER = { 'X-Requested-With': 'gharka' } as const;
 
+/** Which site this is ('customer' | 'vendor'); sent as X-App so each site keeps its own login cookie. */
+let appName: string | undefined;
+export function setApiApp(name: 'customer' | 'vendor') { appName = name; }
+export const appHeaders = (): Record<string, string> => (appName ? { 'X-App': appName } : {});
+
 export class ApiError extends Error {
   constructor(public status: number, public detail: string, public raw?: unknown) {
     super(detail);
@@ -22,7 +27,7 @@ function detailOf(body: unknown, fallback: string): string {
 
 async function request<T>(method: string, path: string, body?: unknown, init: RequestInit = {}): Promise<T> {
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
-  const headers: Record<string, string> = { Accept: 'application/json', ...(init.headers as Record<string, string>) };
+  const headers: Record<string, string> = { Accept: 'application/json', ...appHeaders(), ...(init.headers as Record<string, string>) };
   if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json';
   if (isForm) Object.assign(headers, CSRF_HEADER);
 

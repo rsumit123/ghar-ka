@@ -5,10 +5,9 @@ from typing import Annotated
 from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
 from app.db import get_db
 from app.models import Role, User
-from app.services.sessions import get_user_for_token
+from app.services.sessions import app_of, cookie_name, get_user_for_token
 
 DbDep = Annotated[Session, Depends(get_db)]
 
@@ -16,7 +15,10 @@ CSRF_HEADER_VALUE = "gharka"  # multipart endpoints must send `X-Requested-With:
 
 
 def get_session_token(request: Request) -> str | None:
-    return request.cookies.get(get_settings().COOKIE_NAME)
+    if app := app_of(request):
+        return request.cookies.get(cookie_name(app))
+    # No X-App header: plain links (admin document links on the vendor site) and API clients/tests.
+    return request.cookies.get(cookie_name("vendor")) or request.cookies.get(cookie_name(None))
 
 
 def get_optional_user(request: Request, db: DbDep) -> User | None:
