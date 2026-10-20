@@ -1,4 +1,4 @@
-import { Bi, OtpLogin, Page, useAuth } from '@gharka/ui';
+import { Bi, Page, PhoneLogin, useAuth } from '@gharka/ui';
 import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SiteHeader } from '../components/SiteHeader';
@@ -14,7 +14,7 @@ export default function Login() {
 
   return (
     <Page header={<SiteHeader />} narrow title={<Bi k="vendorLoginTitle" />}>
-      <OtpLogin role="vendor" bilingual onSuccess={() => navigate(from, { replace: true })} />
+      <PhoneLogin role="vendor" bilingual onSuccess={() => navigate(from, { replace: true })} />
       <p className="mt-6 text-center text-sm text-ink-muted">
         <Link to="/admin/login" className="underline">Admin? <Bi k="adminLogin" /></Link>
       </p>

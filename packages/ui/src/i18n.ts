@@ -38,6 +38,13 @@ const dict = {
   adminLogin: { en: 'Admin login', hi: 'एडमिन लॉगिन' },
   vendorLoginTitle: { en: 'Cook login', hi: 'रसोइया लॉगिन' },
   customerLoginTitle: { en: 'Log in to order', hi: 'ऑर्डर के लिए लॉग इन करें' },
+  newHere: { en: 'New here? Sign up', hi: 'नए हैं? साइन अप करें' },
+  inviteOnlyTitle: { en: 'Invite only for now', hi: 'अभी सिर्फ़ निमंत्रण से' },
+  inviteOnlyBody: {
+    en: "We're opening slowly, one neighbourhood at a time. Ask us for an invite and we'll send you your mobile number login and password.",
+    hi: 'हम धीरे-धीरे शुरू कर रहे हैं। निमंत्रण के लिए हमसे संपर्क करें, हम आपको लॉगिन और पासवर्ड भेज देंगे।',
+  },
+  ok: { en: 'OK', hi: 'ठीक है' },
   // --- vendor onboarding (prefix: step*, ob*) ---
   stepAbout: { en: 'About you', hi: 'आपके बारे में' },
   stepPhotos: { en: 'Kitchen photos', hi: 'रसोई की फोटो' },

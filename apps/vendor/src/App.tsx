@@ -9,6 +9,7 @@ import AdminOrders from './pages/admin/Orders';
 import AdminFssai from './pages/admin/Fssai';
 import AdminVendorDetail from './pages/admin/VendorDetail';
 import AdminVendors from './pages/admin/Vendors';
+import AdminUsers from './pages/admin/Users';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import Delivery from './pages/vendor/Delivery';
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="fssai" element={<AdminFssai />} />
         <Route path="orders" element={<AdminOrders />} />
         <Route path="complaints" element={<AdminComplaints />} />
+        <Route path="users" element={<AdminUsers />} />
         <Route path="audit" element={<AdminAudit />} />
       </Route>
       <Route path="/home" element={<Navigate to="/" replace />} />

@@ -14,6 +14,7 @@ export * from './components/Icon';
 export * from './components/Input';
 export * from './components/Modal';
 export * from './components/OtpLogin';
+export * from './components/PhoneLogin';
 export * from './components/Page';
 export * from './components/Spinner';
 export * from './components/Switch';

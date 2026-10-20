@@ -8,6 +8,7 @@ const LINKS = [
   { to: '/admin/fssai', label: 'FSSAI' },
   { to: '/admin/orders', label: 'Orders' },
   { to: '/admin/complaints', label: 'Complaints' },
+  { to: '/admin/users', label: 'Users' },
   { to: '/admin/audit', label: 'Audit log' },
 ];
 

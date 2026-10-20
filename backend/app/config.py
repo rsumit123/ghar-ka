@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     COOKIE_SECURE: bool | None = None  # None -> True when ENV=prod, else False
     SESSION_DAYS: int = 30
 
+    # --- login ---
+    # otp: phone + SMS code, anyone can sign up. password: invite only, the admin creates customers/cooks with a password.
+    AUTH_MODE: str = "otp"
+
     # --- SMS / OTP ---
     SMS_PROVIDER: str = "console"
     OTP_LENGTH: int = 6

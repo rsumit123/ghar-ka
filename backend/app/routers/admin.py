@@ -12,6 +12,7 @@ from app.models import (
     AuditLog, Complaint, ComplaintStatus, FssaiRecord, FssaiStatus, Locality, Order, OrderStatus, ReviewStatus, Role,
     Subscription, SubscriptionStatus, User, Vendor, VendorMedia,
 )
+from app.schemas.auth import InvitedUserOut, InviteIn
 from app.schemas.subscription import ComplaintUpdate
 from app.schemas.locality import LocalityOut
 from app.schemas.vendor import FssaiIn, LocalityIn, NoteIn, OverrideIn
@@ -21,6 +22,7 @@ from app.services.audit import write_audit
 from app.services.clock import local_today
 from app.services.subscriptions import end_date as sub_end_date
 from app.services.golive import is_vendor_live, live_vendor_filter
+from app.services.security import hash_password
 from app.services.sessions import delete_user_sessions
 from app.services.vendors import PRIVATE_DOC_KINDS, locality_name, media_out, missing_docs
 
@@ -383,3 +385,37 @@ def create_locality(body: LocalityIn, admin: AdminUser, db: DbDep):
     write_audit(db, admin.id, "locality.create", "locality", loc.id, body.model_dump())
     db.commit()
     return loc
+
+
+# ---------------------------------------------------------------- invited users (AUTH_MODE=password)
+def _invited_out(u: User) -> InvitedUserOut:
+    return InvitedUserOut(id=u.id, role=u.role, phone=u.phone, name=u.name,
+                          has_password=bool(u.password_hash), created_at=u.created_at)
+
+
+@router.get("/users", response_model=list[InvitedUserOut])
+def list_users(db: DbDep, role: Role | None = None):
+    q = select(User).where(User.role.in_([Role.customer, Role.vendor])).order_by(User.created_at.desc())
+    if role is not None:
+        q = q.where(User.role == role)
+    return [_invited_out(u) for u in db.scalars(q)]
+
+
+@router.post("/users", response_model=InvitedUserOut)
+def invite_user(body: InviteIn, admin: AdminUser, db: DbDep):
+    """Create a customer/cook with a password, or reset the password of an existing one (logs them out)."""
+    user = db.execute(select(User).where(User.phone == body.phone, User.role == body.role)).scalar_one_or_none()
+    created = user is None
+    if created:
+        user = User(role=body.role, phone=body.phone, name=body.name.strip())
+        db.add(user)
+    elif body.name.strip():
+        user.name = body.name.strip()
+    user.password_hash = hash_password(body.password)
+    db.flush()
+    if not created:
+        delete_user_sessions(db, user.id)
+    write_audit(db, admin.id, "user.invite" if created else "user.password_reset", "user", user.id,
+                {"phone": body.phone, "role": body.role.value})
+    db.commit()
+    return _invited_out(user)

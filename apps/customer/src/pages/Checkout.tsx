@@ -1,4 +1,4 @@
-import { ApiError, Button, Card, EmptyState, Input, OtpLogin, Spinner, api, brand, cx, Icon, useAuth, type User } from '@gharka/ui';
+import { ApiError, Button, Card, EmptyState, Input, PhoneLogin, Spinner, api, brand, cx, Icon, useAuth, type User } from '@gharka/ui';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LocationPicker } from '../components/LazyMaps';
@@ -67,8 +67,8 @@ export default function Checkout() {
 
   if (!user) {
     return (
-      <Shell title="Log in to order" subtitle="We'll text you a 6-digit code. No password needed.">
-        <OtpLogin role="customer" />
+      <Shell title="Log in to order">
+        <PhoneLogin role="customer" />
       </Shell>
     );
   }
