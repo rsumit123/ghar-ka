@@ -8,7 +8,7 @@ from app.models import Role, User
 from app.config import get_settings
 from app.schemas.auth import AdminLogin, AuthConfigOut, OkOut, OtpRequest, OtpVerify, PasswordLogin, UserOut
 from app.services import otp as otp_service
-from app.services.security import verify_password
+from app.services.security import constant_time_eq, verify_password
 from app.services.sessions import clear_session_cookie, create_session, delete_session, set_session_cookie
 from app.services.sms import SmsProvider, get_sms_provider
 
@@ -19,7 +19,7 @@ INVITE_ONLY = "We're invite only for now. Ask us for an invite to get your login
 
 
 def _password_mode() -> bool:
-    return get_settings().AUTH_MODE == "password"
+    return get_settings().AUTH_MODE in ("password", "shared_password")
 
 
 @router.get("/config", response_model=AuthConfigOut)
@@ -32,6 +32,16 @@ def password_login(body: PasswordLogin, response: Response, db: DbDep):
     if not _password_mode():
         raise HTTPException(404, "Password login is off")
     user = db.execute(select(User).where(User.phone == body.phone, User.role == body.role)).scalar_one_or_none()
+    s = get_settings()
+    if s.AUTH_MODE == "shared_password":
+        if not s.SHARED_LOGIN_PASSWORD or not constant_time_eq(body.password, s.SHARED_LOGIN_PASSWORD):
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Wrong mobile number or password")
+        if user is None:
+            user = User(role=body.role, phone=body.phone, name="")
+            db.add(user)
+            db.commit()
+        set_session_cookie(response, create_session(db, user))
+        return user
     # verify_password runs bcrypt even without a user, so unknown numbers take as long as wrong passwords
     if not verify_password(body.password, user.password_hash if user else None):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Wrong mobile number or password")

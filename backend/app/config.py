@@ -23,7 +23,9 @@ class Settings(BaseSettings):
 
     # --- login ---
     # otp: phone + SMS code, anyone can sign up. password: invite only, the admin creates customers/cooks with a password.
+    # shared_password: testing only, any mobile number logs in (account created on first login) with SHARED_LOGIN_PASSWORD.
     AUTH_MODE: str = "otp"
+    SHARED_LOGIN_PASSWORD: str = ""
 
     # --- SMS / OTP ---
     SMS_PROVIDER: str = "console"

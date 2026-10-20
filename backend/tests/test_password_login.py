@@ -99,3 +99,30 @@ def test_list_users(client, password_mode, as_admin):
     assert {u["role"] for u in all_users} == {"vendor", "customer"}  # admins are not listed
     cooks = client.get("/api/v1/admin/users", params={"role": "vendor"}).json()
     assert [u["phone"] for u in cooks] == [E164]
+
+
+@pytest.fixture
+def shared_mode(monkeypatch):
+    monkeypatch.setattr(get_settings(), "AUTH_MODE", "shared_password")
+    monkeypatch.setattr(get_settings(), "SHARED_LOGIN_PASSWORD", "let-me-in")
+
+
+def test_shared_password_creates_and_reuses_users(client, db, shared_mode):
+    from app.models import User
+    url = "/api/v1/auth/password/login"
+    assert client.get("/api/v1/auth/config").json() == {"mode": "password"}
+    r = client.post(url, json={"phone": PHONE, "role": "vendor", "password": "let-me-in"})
+    assert r.status_code == 200 and r.json()["role"] == "vendor"
+    assert client.post(url, json={"phone": PHONE, "role": "vendor", "password": "let-me-in"}).json()["id"] == r.json()["id"]
+    assert client.post(url, json={"phone": PHONE, "role": "customer", "password": "let-me-in"}).status_code == 200
+    assert len(db.scalars(select(User)).all()) == 2
+    assert client.post(url, json={"phone": PHONE, "role": "vendor", "password": "wrong"}).status_code == 401
+    assert client.post(url, json={"phone": "12345", "role": "vendor", "password": "let-me-in"}).status_code == 422
+    assert client.post("/api/v1/auth/otp/request", json={"phone": PHONE, "role": "vendor"}).status_code == 403
+
+
+def test_shared_password_unset_rejects_everyone(client, monkeypatch):
+    monkeypatch.setattr(get_settings(), "AUTH_MODE", "shared_password")
+    monkeypatch.setattr(get_settings(), "SHARED_LOGIN_PASSWORD", "")
+    r = client.post("/api/v1/auth/password/login", json={"phone": PHONE, "role": "vendor", "password": ""})
+    assert r.status_code in (401, 422)
