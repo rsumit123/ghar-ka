@@ -9,7 +9,7 @@ from app.deps import DbDep, require_role
 from app.models import Order, Role, User
 from app.schemas.auth import UserOut
 from app.schemas.order import CancelIn, OrderIn, ProfileUpdateIn
-from app.services import clock, order_views, orders
+from app.services import clock, order_views, orders, payments
 from app.services.subscriptions import materialize_subscription_orders
 
 router = APIRouter(tags=["customer"])
@@ -49,6 +49,7 @@ def create_order(body: OrderIn, user: CustomerUser, db: DbDep):
 
 @router.get("/orders")
 def my_orders(user: CustomerUser, db: DbDep):
+    payments.expire_unpaid_orders(db, clock.now(), customer_id=user.id)
     materialize_subscription_orders(db, clock.local_today() + timedelta(days=1), customer_id=user.id)
     rows = db.scalars(select(Order).where(Order.customer_id == user.id).order_by(Order.created_at.desc(), Order.id.desc()).limit(100)).all()
     return order_views.customer_orders_out(db, list(rows), clock.now())
@@ -56,6 +57,7 @@ def my_orders(user: CustomerUser, db: DbDep):
 
 @router.get("/orders/{order_id}")
 def get_order(order_id: int, user: CustomerUser, db: DbDep):
+    payments.expire_unpaid_orders(db, clock.now(), customer_id=user.id)
     return order_views.customer_orders_out(db, [_own(db, user, order_id)], clock.now())[0]
 
 

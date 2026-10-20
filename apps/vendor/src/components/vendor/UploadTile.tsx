@@ -1,4 +1,4 @@
-import { ApiError, Bi, Spinner, cx, type DictKey } from '@gharka/ui';
+import { ApiError, Bi, cx, type DictKey, Icon, Spinner } from '@gharka/ui';
 import { useRef, useState, type ReactNode } from 'react';
 import { uploadWithProgress } from '../../lib/upload';
 import type { MediaKind } from '../../lib/types';
@@ -54,7 +54,7 @@ export function UploadTile({ kind, label, hint, accept = 'image/*', onDone, chil
             {camera && (
               <button type="button" className="flex min-h-16 w-full flex-col items-center justify-center rounded-xl px-2 py-2 active:bg-turmeric-100"
                 onClick={() => camRef.current?.click()}>
-                <span className="text-3xl" aria-hidden>📷</span>
+                <Icon.Camera className="h-8 w-8" />
                 <span className="text-base font-bold leading-tight">{label}</span>
               </button>
             )}

@@ -1,8 +1,20 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
-export default defineConfig({
-  plugins: [react()],
-  server: { port: 5173, strictPort: true, host: true },
-  preview: { port: 5173 },
+// Brand name and theme colour reach index.html (title, meta) at build time from VITE_BRAND_NAME.
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, '.', 'VITE_');
+  const vars: Record<string, string> = {
+    BRAND_NAME: env.VITE_BRAND_NAME || 'gharka',
+    THEME_COLOR: '#FBF6EC',
+    DESCRIPTION: 'Order home-cooked meals and tiffins from cooks in your neighbourhood.',
+  };
+  return {
+    plugins: [
+      react(),
+      { name: 'brand-html', transformIndexHtml: (html: string) => html.replace(/%(BRAND_NAME|THEME_COLOR|DESCRIPTION)%/g, (_m, k: string) => vars[k]) },
+    ],
+    server: { port: 5173, strictPort: true, host: true },
+    preview: { port: 5173 },
+  };
 });

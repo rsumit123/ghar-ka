@@ -1,6 +1,6 @@
 /** Orders-per-day bar chart in plain SVG (no chart library). Scales to the container width. */
 export function OrdersChart({ data }: { data: { date: string; count: number }[] }) {
-  const W = 420, H = 200, padL = 28, padR = 6, padT = 16, padB = 28;
+  const W = 760, H = 240, padL = 28, padR = 6, padT = 16, padB = 28;
   const max = Math.max(4, ...data.map((d) => d.count));
   const top = Math.ceil(max / 4) * 4; // round the scale to 4 steps
   const plotW = W - padL - padR, plotH = H - padT - padB;
@@ -13,7 +13,7 @@ export function OrdersChart({ data }: { data: { date: string; count: number }[] 
 
   return (
     <figure>
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full max-w-3xl" role="img" aria-label={`Orders per day for the last ${data.length} days, ${total} in total`}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`Orders per day for the last ${data.length} days, ${total} in total`}>
         {ticks.map((t) => (
           <g key={t}>
             <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} className="stroke-cream-300" strokeWidth={t === 0 ? 1.5 : 1} strokeDasharray={t === 0 ? undefined : '3 4'} />

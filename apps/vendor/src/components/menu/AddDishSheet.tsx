@@ -1,4 +1,4 @@
-import { ApiError, Bi, Button, DietMark, Input, Modal, api, cx, mediaUrl, t, type DictKey } from '@gharka/ui';
+import { api, ApiError, Bi, Button, cx, type DictKey, DietMark, Icon, Input, mediaUrl, Modal, t } from '@gharka/ui';
 import { useEffect, useRef, useState } from 'react';
 import { dayNum, isoDate, monthShort, weekday } from '../../lib/dates';
 import type { CutoffPreset, Diet, Offering, Slot } from '../../lib/types';
@@ -205,7 +205,7 @@ export function AddDishSheet({ open, onClose, date, slot, editing, onSaved, noti
           <div className="flex items-center gap-3">
             {photoSrc ? <img src={photoSrc} alt="" className="h-20 w-20 rounded-2xl object-cover" /> : <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-turmeric-50 text-3xl" aria-hidden>🍛</div>}
             <div className="flex flex-col gap-1">
-              <Button variant="outline" onClick={() => camRef.current?.click()}><span aria-hidden>📷</span> <Bi k="takePhoto" /></Button>
+              <Button variant="outline" onClick={() => camRef.current?.click()}><Icon.Camera className="h-5 w-5" /> <Bi k="takePhoto" /></Button>
               <button type="button" className="min-h-10 text-sm font-semibold text-leaf-700 underline" onClick={() => galRef.current?.click()}><Bi k="fromGallery" /></button>
             </div>
           </div>

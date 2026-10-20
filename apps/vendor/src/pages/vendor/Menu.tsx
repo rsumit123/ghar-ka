@@ -1,4 +1,4 @@
-import { ApiError, Bi, Button, Card, DietMark, EmptyState, Page, Spinner, api, cx, mediaUrl, t } from '@gharka/ui';
+import { api, ApiError, Bi, Button, Card, cx, DietMark, EmptyState, Icon, mediaUrl, Page, Spinner, t } from '@gharka/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SiteHeader } from '../../components/SiteHeader';
@@ -67,7 +67,7 @@ export default function Menu() {
 
       <div className="mt-5 space-y-3">
         <Button size="xl" block onClick={() => setSheet({ editing: null })}><span aria-hidden>＋</span> <Bi k="addDish" /></Button>
-        <Button variant="outline" block loading={copying} onClick={() => void copyYesterday()}><span aria-hidden>📋</span> <Bi k="copyYesterday" /></Button>
+        <Button variant="outline" block loading={copying} onClick={() => void copyYesterday()}><Icon.Copy className="h-5 w-5" /> <Bi k="copyYesterday" /></Button>
         {notice && <p className={cx('text-center font-semibold', notice.ok ? 'text-leaf-700' : 'text-terracotta-600')} role="status">{notice.text}</p>}
       </div>
 

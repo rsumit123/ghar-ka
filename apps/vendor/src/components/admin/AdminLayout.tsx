@@ -15,7 +15,7 @@ const LINKS = [
 export function AdminLayout() {
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader />
+      <SiteHeader wide />
       <nav className="sticky top-16 z-20 border-b border-cream-200 bg-cream-100/95 backdrop-blur" aria-label="Admin">
         <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-2">
           {LINKS.map((l) => (

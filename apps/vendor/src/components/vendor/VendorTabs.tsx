@@ -1,10 +1,11 @@
-import { Bi, cx, type DictKey } from '@gharka/ui';
+import { Bi, Icon, cx, type DictKey } from '@gharka/ui';
+import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 
-const TABS: { to: string; k: DictKey; icon: string }[] = [
-  { to: '/orders', k: 'orders', icon: '🧾' },
-  { to: '/menu', k: 'menu', icon: '🍛' },
-  { to: '/plans', k: 'plans', icon: '🍱' },
+const TABS: { to: string; k: DictKey; icon: ReactNode }[] = [
+  { to: '/orders', k: 'orders', icon: <Icon.Receipt className="h-6 w-6" /> },
+  { to: '/menu', k: 'menu', icon: <Icon.Pot className="h-6 w-6" /> },
+  { to: '/plans', k: 'plans', icon: <Icon.Tiffin className="h-6 w-6" /> },
 ];
 
 /** Big switches shown on Orders, Menu and Plans so cooks never hunt for navigation. */
@@ -15,7 +16,7 @@ export function VendorTabs() {
         <NavLink key={i.to} to={i.to}
           className={({ isActive }) => cx('flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1 py-1.5 text-center text-sm font-bold leading-tight',
             isActive ? 'border-ink bg-ink text-cream' : 'border-cream-300 bg-white/70 text-ink-soft')}>
-          <span className="text-lg" aria-hidden>{i.icon}</span><span><Bi k={i.k} only="en" /> <Bi k={i.k} only="hi" className="block text-xs font-semibold opacity-80" /></span>
+          {i.icon}<span><Bi k={i.k} only="en" /> <Bi k={i.k} only="hi" className="block text-xs font-semibold opacity-80" /></span>
         </NavLink>
       ))}
     </nav>

@@ -1,13 +1,13 @@
-import { cx } from '@gharka/ui';
+import { cx, Icon } from '@gharka/ui';
 import { NavLink } from 'react-router-dom';
 import { cartCount, useCart } from '../lib/cart';
 
 const items = [
-  { to: '/', label: 'Cooks', icon: '🍲', end: true },
-  { to: '/cart', label: 'Cart', icon: '🧺' },
-  { to: '/tiffins', label: 'Tiffins', icon: '🍱' },
-  { to: '/orders', label: 'Orders', icon: '🧾' },
-  { to: '/profile', label: 'Me', icon: '🙂' },
+  { to: '/', label: 'Cooks', icon: <Icon.Pot className="h-6 w-6" />, end: true },
+  { to: '/cart', label: 'Cart', icon: <Icon.Basket className="h-6 w-6" /> },
+  { to: '/tiffins', label: 'Tiffins', icon: <Icon.Tiffin className="h-6 w-6" /> },
+  { to: '/orders', label: 'Orders', icon: <Icon.Receipt className="h-6 w-6" /> },
+  { to: '/profile', label: 'Me', icon: <Icon.Person className="h-6 w-6" /> },
 ];
 
 /** Phone-only bottom tabs. */
@@ -21,7 +21,7 @@ export function BottomNav() {
           <li key={i.to} className="flex-1">
             <NavLink to={i.to} end={i.end}
               className={({ isActive }) => cx('relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs font-semibold', isActive ? 'text-terracotta-600' : 'text-ink-muted')}>
-              <span className="text-xl" aria-hidden>{i.icon}</span>
+              {i.icon}
               {i.label}
               {i.to === '/cart' && n > 0 && (
                 <span className="absolute right-[24%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-terracotta-500 px-1 text-[10px] font-bold text-white">{n}</span>

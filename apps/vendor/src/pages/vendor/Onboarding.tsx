@@ -1,4 +1,4 @@
-import { ApiError, Bi, Button, Card, Input, Page, TiffinIllustration, api, cx, t, type DictKey } from '@gharka/ui';
+import { api, ApiError, Bi, Button, Card, cx, type DictKey, Icon, Input, Page, t, TiffinIllustration } from '@gharka/ui';
 import { LocationPicker } from '@gharka/ui/maps';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -102,7 +102,7 @@ function AboutStep({ onDone }: { onDone: () => void }) {
         {!mapOpen ? (
           <div className="flex gap-2">
             <Button variant="outline" size="lg" className="flex-1" onClick={() => setMapOpen(true)}>
-              📍 <Bi k={pos ? 'locationSet' : 'setOnMap'} />
+              <Icon.Pin className="mr-1 inline h-5 w-5 align-text-bottom" /> <Bi k={pos ? 'locationSet' : 'setOnMap'} />
             </Button>
           </div>
         ) : (
@@ -135,7 +135,7 @@ function DocsStep({ onNext }: { onNext: () => void }) {
   const { me, reload } = useVendor();
   return (
     <div className="space-y-4">
-      <p className="text-ink-soft">🔒 <Bi k="docsPrivate" /></p>
+      <p className="text-ink-soft"><Icon.Lock className="mr-1 inline h-5 w-5 align-text-bottom" /> <Bi k="docsPrivate" /></p>
       <DocCards me={me} reload={reload} />
       {me.docs_complete
         ? <Button size="xl" block onClick={onNext}><Bi k="finish" /> ✓</Button>

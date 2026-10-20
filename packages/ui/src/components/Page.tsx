@@ -4,7 +4,8 @@ import { brand } from '../brand';
 import { cx } from '../cx';
 
 /** Top bar: brand wordmark (links home), optional nav, optional right-side actions. */
-export function Header({ nav, actions, homeTo = '/', tagline }: {
+export function Header({ nav, actions, homeTo = '/', tagline, wide }: {
+  wide?: boolean;
   nav?: ReactNode;
   actions?: ReactNode;
   homeTo?: string;
@@ -12,7 +13,7 @@ export function Header({ nav, actions, homeTo = '/', tagline }: {
 }) {
   return (
     <header className="sticky top-0 z-30 border-b border-cream-200 bg-cream/90 backdrop-blur">
-      <div className="mx-auto flex min-h-16 max-w-5xl items-center gap-3 px-4">
+      <div className={cx('mx-auto flex min-h-16 items-center gap-3 px-4', wide ? 'max-w-6xl' : 'max-w-5xl')}>
         <Link to={homeTo} className="flex items-baseline gap-2">
           <span className="font-serif text-2xl font-bold tracking-tight text-terracotta-600">{brand.name}</span>
           {tagline && <span className="hidden font-hand text-lg text-ink-muted sm:inline">{tagline}</span>}

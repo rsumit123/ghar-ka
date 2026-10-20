@@ -1,4 +1,4 @@
-import { ApiError, Button, Card, EmptyState, Modal, Spinner, TiffinIllustration, api, brand, qs } from '@gharka/ui';
+import { api, ApiError, brand, Button, Card, EmptyState, Icon, Modal, qs, Spinner, TiffinIllustration } from '@gharka/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DateChips, DietChips, Segmented, SlotToggle, next7, type DietFilter } from '../components/Chips';
@@ -33,12 +33,12 @@ export default function Home() {
     <Shell>
       <div className="flex items-center justify-between gap-3">
         <button type="button" onClick={() => setChanging(true)} className="flex min-h-11 min-w-0 items-center gap-1.5 rounded-full bg-white/80 px-3.5 text-left ring-1 ring-cream-300">
-          <span aria-hidden>📍</span>
+          <Icon.Pin className="h-5 w-5" />
           <span className="truncate font-semibold">{place.name}</span>
           <span className="text-ink-muted" aria-hidden>▾</span>
         </button>
         <Segmented<'list' | 'map'> label="View" value={view} onChange={(v) => set('view', v === 'map' ? 'map' : null)}
-          options={[{ value: 'list', label: '☰ List' }, { value: 'map', label: '🗺 Map' }]} />
+          options={[{ value: 'list', label: <span className="inline-flex items-center gap-1.5"><Icon.List className="h-4 w-4" /> List</span> }, { value: 'map', label: <span className="inline-flex items-center gap-1.5"><Icon.Map className="h-4 w-4" /> Map</span> }]} />
       </div>
 
       <p className="mt-5 font-hand text-2xl text-terracotta-600">who&apos;s cooking near you?</p>

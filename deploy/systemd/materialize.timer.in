@@ -1,0 +1,11 @@
+[Unit]
+Description=Run ${APP_NAME} materialize every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+AccuracySec=30s
+Persistent=true
+Unit=${APP_NAME}-materialize.service
+
+[Install]
+WantedBy=timers.target

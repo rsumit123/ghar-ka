@@ -1,0 +1,15 @@
+[Unit]
+Description=${BRAND_NAME} backup (database + uploads)
+
+[Service]
+Type=oneshot
+User=${SERVICE_USER}
+Group=${SERVICE_USER}
+Environment=DEPLOY_CONF=${DEPLOY_CONF_PATH}
+ExecStart=${APP_DIR}/deploy/backup.sh
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# DATA_DIR is writable because reading a WAL-mode SQLite database touches its -shm file
+ReadWritePaths=${BACKUP_DIR} ${DATA_DIR}

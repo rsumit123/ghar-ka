@@ -10,3 +10,8 @@ uploads/
 dist
 .env
 *.tsbuildinfo
+*.egg-info
+.env.*
+!.env.example
+deploy/deploy.conf
+deploy/out/

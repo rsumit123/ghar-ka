@@ -16,7 +16,7 @@ from tests.conftest import TODAY
 def _race(db, customers, offering_ids, qty, total_threads):
     """Fire `total_threads` simultaneous place_order calls (each from its own Session) and collect outcomes."""
     # NB: keep total_threads <= 14: each worker holds a pooled connection (QueuePool default is 5 + 10 overflow).
-    engine = make_engine(str(db.get_bind().url))
+    engine = make_engine(db.get_bind().url.render_as_string(hide_password=False))
     Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     barrier = threading.Barrier(total_threads)
     results: list[str] = [""] * total_threads
@@ -90,7 +90,7 @@ def test_racing_cancel_and_buy_never_oversells(db, clk, make_vendor, make_offeri
     c = make_user(Role.customer)
     first = [order_service.place_order(db, c, OrderIn(items=[{"offering_id": o.id, "qty": 1}], fulfilment="pickup"), clk.current)
              for _ in range(4)]
-    engine = make_engine(str(db.get_bind().url))
+    engine = make_engine(db.get_bind().url.render_as_string(hide_password=False))
     Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     barrier = threading.Barrier(8)
     out: list[str] = []

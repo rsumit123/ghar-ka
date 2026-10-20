@@ -42,11 +42,16 @@ class FakeSms:
 
 @pytest.fixture
 def db(tmp_path):
-    engine = make_engine(f"sqlite:///{tmp_path}/test.db")
+    # TEST_DATABASE_URL=postgresql+psycopg://... runs the whole suite against Postgres (the schema is dropped afterwards).
+    url = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{tmp_path}/test.db"
+    engine = make_engine(url)
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)()
     yield session
     session.close()
+    if not url.startswith("sqlite"):
+        Base.metadata.drop_all(engine)
     engine.dispose()
 
 

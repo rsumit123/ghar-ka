@@ -1,4 +1,4 @@
-import { ApiError, Badge, Bi, Button, Card, EmptyState, Input, Modal, Page, Spinner, api, brand, cx, t, type BadgeTone, type DictKey } from '@gharka/ui';
+import { api, ApiError, Badge, type BadgeTone, Bi, brand, Button, Card, cx, type DictKey, EmptyState, Icon, Input, Modal, Page, Spinner, t } from '@gharka/ui';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SiteHeader } from '../../components/SiteHeader';
@@ -89,7 +89,7 @@ function SlotSection({ slot, orders, summary, onChanged, onCancel }: {
   return (
     <section aria-label={t(slot).en}>
       <h2 className="mb-2 flex items-center gap-2 font-serif text-2xl font-bold">
-        <span aria-hidden>{slot === 'lunch' ? '☀️' : '🌙'}</span><Bi k={slot} />
+        {slot === 'lunch' ? <Icon.Sun className="h-6 w-6" /> : <Icon.Moon className="h-6 w-6" />}<Bi k={slot} />
         {active.length > 0 && <span className="rounded-full bg-terracotta-500 px-2.5 py-0.5 font-sans text-sm text-white">{active.length}</span>}
       </h2>
       {summary.length > 0 && (
@@ -146,7 +146,7 @@ function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () =
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-2xl font-bold leading-tight">{o.customer.name || o.customer.phone}
-            {o.is_tiffin && <Badge tone="turmeric" className="ml-2 px-3 py-1 align-middle text-sm">🍱 <Bi k="tiffinBadge" /></Badge>}</h3>
+            {o.is_tiffin && <Badge tone="turmeric" className="ml-2 px-3 py-1 align-middle text-sm"><Bi k="tiffinBadge" /></Badge>}</h3>
           <p className="text-sm text-ink-muted">#{o.id} · {clockTime(o.created_at)}</p>
         </div>
         <Badge tone={st.tone} className="px-3 py-1 text-sm"><Bi k={st.k} /></Badge>
@@ -157,7 +157,7 @@ function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () =
       </ul>
 
       <div className="mt-3 rounded-2xl bg-cream-100/70 p-3 text-base">
-        <p className="font-bold">{o.fulfilment === 'delivery' ? <>🛵 <Bi k="homeDelivery" /></> : <>🚶 <Bi k="pickup" /></>}</p>
+        <p className="font-bold">{o.fulfilment === 'delivery' ? <span className="inline-flex items-center gap-1.5"><Icon.Bike className="h-5 w-5" /> <Bi k="homeDelivery" /></span> : <span className="inline-flex items-center gap-1.5"><Icon.Walk className="h-5 w-5" /> <Bi k="pickup" /></span>}</p>
         {o.fulfilment === 'delivery' && o.delivery_address && (
           <p className="mt-0.5">{o.delivery_address}{mapUrl && <> · <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-leaf-700 underline">Map</a></>}</p>
         )}
@@ -170,9 +170,9 @@ function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () =
 
       {o.customer.phone && o.status !== 'cancelled' && (
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <a href={`tel:${o.customer.phone}`} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-ink/20 bg-white font-bold"><span aria-hidden>📞</span><Bi k="call" /></a>
+          <a href={`tel:${o.customer.phone}`} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-ink/20 bg-white font-bold"><Icon.Phone className="h-5 w-5" /><Bi k="call" /></a>
           <a href={`https://wa.me/${o.customer.whatsapp_digits}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener noreferrer"
-            className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-leaf-500 bg-white font-bold text-leaf-700"><span aria-hidden>💬</span><Bi k="whatsapp" /></a>
+            className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-leaf-500 bg-white font-bold text-leaf-700"><Icon.Chat className="h-5 w-5" /><Bi k="whatsapp" /></a>
         </div>
       )}
 

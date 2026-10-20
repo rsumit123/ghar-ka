@@ -1,4 +1,4 @@
-import { ApiError, Badge, Button, Card, EmptyState, Modal, RequireRole, Spinner, TiffinIllustration, api, cx, type BadgeTone } from '@gharka/ui';
+import { api, ApiError, Badge, type BadgeTone, Button, Card, cx, EmptyState, Icon, Modal, RequireRole, Spinner, TiffinIllustration } from '@gharka/ui';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { DietMark } from '../components/DietMark';
@@ -114,7 +114,7 @@ function SubCard({ sub, onChange }: { sub: Subscription; onChange: (s: Subscript
             {sub.upcoming.map((m) => <li key={m.date}><DayChip meal={m} busy={busyDay === m.date} onTap={() => void toggle(m)} /></li>)}
           </ul>
           <p className="mt-2 text-xs text-ink-muted">
-            🔒 Locked once the order-by time passes. {sub.upcoming.find((m) => m.state === 'open') && <>Next one closes {cutoffText(sub.upcoming.find((m) => m.state === 'open')!.cutoff_at, sub.upcoming.find((m) => m.state === 'open')!.date)}.</>}
+            <Icon.Lock className="mr-1 inline h-3.5 w-3.5 align-text-top" /> Locked once the order-by time passes. {sub.upcoming.find((m) => m.state === 'open') && <>Next one closes {cutoffText(sub.upcoming.find((m) => m.state === 'open')!.cutoff_at, sub.upcoming.find((m) => m.state === 'open')!.date)}.</>}
           </p>
         </div>
       )}
@@ -159,7 +159,7 @@ function DayChip({ meal, busy, onTap }: { meal: Meal; busy: boolean; onTap: () =
       )}>
       <span className={cx('text-xs font-semibold leading-4', state === 'skipped' && 'line-through')}>{weekdayShort(date)}</span>
       <span className={cx('text-lg font-bold leading-5 tabular-nums', state === 'skipped' && 'line-through')}>{dayNum(date)}</span>
-      {state === 'locked' && <span className="absolute -right-1 -top-1 text-xs" aria-hidden>🔒</span>}
+      {state === 'locked' && <Icon.Lock className="absolute -right-1 -top-1 h-3.5 w-3.5" />}
     </button>
   );
 }

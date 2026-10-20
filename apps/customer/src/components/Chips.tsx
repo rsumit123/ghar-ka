@@ -1,4 +1,4 @@
-import { cx } from '@gharka/ui';
+import { cx, Icon } from '@gharka/ui';
 import type { ReactNode } from 'react';
 import { dayLabel, dayNum, isoDate, monthShort } from '../lib/format';
 import type { Diet, Slot } from '../lib/types';
@@ -55,7 +55,7 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
 export function SlotToggle({ value, onChange }: { value: Slot; onChange: (s: Slot) => void }) {
   return (
     <Segmented<Slot> label="Meal" value={value} onChange={onChange} options={[
-      { value: 'lunch', label: <>☀️ Lunch</> }, { value: 'dinner', label: <>🌙 Dinner</> },
+      { value: 'lunch', label: <span className="inline-flex items-center gap-1.5"><Icon.Sun className="h-4 w-4" /> Lunch</span> }, { value: 'dinner', label: <span className="inline-flex items-center gap-1.5"><Icon.Moon className="h-4 w-4" /> Dinner</span> },
     ]} />
   );
 }

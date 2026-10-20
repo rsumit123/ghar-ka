@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     RAZORPAY_ENABLED: bool = False
     RAZORPAY_KEY_ID: str = ""
     RAZORPAY_KEY_SECRET: str = ""
+    RAZORPAY_WEBHOOK_SECRET: str = ""
+    RAZORPAY_API_URL: str = "https://api.razorpay.com/v1"
+    # Online orders not paid within this many minutes are cancelled and their portions released.
+    RAZORPAY_PAYMENT_TIMEOUT_MINUTES: int = 15
 
     # --- geocoding (OpenStreetMap Nominatim) ---
     NOMINATIM_URL: str = "https://nominatim.openstreetmap.org"

@@ -1,4 +1,4 @@
-import { ApiError, Button, Input, Spinner, api, qs } from '@gharka/ui';
+import { api, ApiError, Button, Icon, Input, qs, Spinner } from '@gharka/ui';
 import { useEffect, useState, type FormEvent } from 'react';
 import type { Place } from '../lib/place';
 import type { Locality } from '../lib/types';
@@ -54,7 +54,7 @@ export function PlacePicker({ onPick }: { onPick: (p: Place) => void }) {
   return (
     <div className="space-y-5">
       <Button variant="secondary" size="xl" block onClick={locate} loading={busy && !hits.length}>
-        <span aria-hidden>📍</span> Use my location
+        <Icon.Pin className="h-5 w-5" /> Use my location
       </Button>
       {msg && <p className="text-sm font-medium text-terracotta-600" role="status">{msg}</p>}
 

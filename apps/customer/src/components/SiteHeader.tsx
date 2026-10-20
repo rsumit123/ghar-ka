@@ -1,4 +1,4 @@
-import { Button, Header, cx, useAuth } from '@gharka/ui';
+import { Button, cx, Header, Icon, useAuth } from '@gharka/ui';
 import { Link, NavLink } from 'react-router-dom';
 import { cartCount, useCart } from '../lib/cart';
 
@@ -10,7 +10,7 @@ export function CartButton({ className }: { className?: string }) {
   const n = cartCount(cart);
   return (
     <Link to="/cart" aria-label={`Cart, ${n} items`} className={cx('relative flex h-11 w-11 items-center justify-center rounded-full text-2xl hover:bg-cream-100', className)}>
-      <span aria-hidden>🧺</span>
+      <Icon.Basket className="h-5 w-5" />
       {n > 0 && (
         <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-terracotta-500 px-1 text-xs font-bold text-white">{n}</span>
       )}

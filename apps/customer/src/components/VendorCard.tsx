@@ -1,4 +1,4 @@
-import { Badge, cx } from '@gharka/ui';
+import { Badge, cx, Icon } from '@gharka/ui';
 import { Link } from 'react-router-dom';
 import { cutoffText, rupees } from '../lib/format';
 import type { Slot, VendorCardData } from '../lib/types';
@@ -27,13 +27,13 @@ export function VendorCard({ v, date, slot }: { v: VendorCardData; date: string;
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
         <Stars avg={v.rating_avg} count={v.rating_count} />
         {v.orders_served > 0 && <span>{v.orders_served} meals served</span>}
-        {v.distance_km !== null && <span>📍 {v.distance_km} km</span>}
+        {v.distance_km !== null && <span className="inline-flex items-center gap-0.5"><Icon.Pin className="h-4 w-4" /> {v.distance_km} km</span>}
       </div>
 
       <div className="mt-2.5 flex flex-wrap gap-1.5">
-        {v.fssai_registered && <Badge tone="leaf">✓ FSSAI registered</Badge>}
+        {v.fssai_registered && <Badge tone="leaf"><Icon.Check className="h-3.5 w-3.5" /> FSSAI registered</Badge>}
         {v.offers_pickup && <Badge tone="neutral">Pickup</Badge>}
-        {v.delivers_to_you ? <Badge tone="turmeric">🛵 Delivers to you</Badge>
+        {v.delivers_to_you ? <Badge tone="turmeric"><Icon.Bike className="h-3.5 w-3.5" /> Delivers to you</Badge>
           : v.delivery_radius_km > 0 && <Badge tone="neutral">Delivers within {v.delivery_radius_km} km</Badge>}
       </div>
 

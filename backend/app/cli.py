@@ -32,8 +32,14 @@ def materialize(days_ahead: int = 1) -> int:
     from app.services import clock
     from app.services.subscriptions import materialize_subscription_orders
 
+    from app.services.payments import expire_unpaid_orders
+
     with SessionLocal() as db:
-        return materialize_subscription_orders(db, clock.local_today() + timedelta(days=days_ahead))
+        n = materialize_subscription_orders(db, clock.local_today() + timedelta(days=days_ahead))
+        expired = expire_unpaid_orders(db, clock.now())
+        if expired:
+            print(f"Cancelled {expired} unpaid online order(s)")
+        return n
 
 
 def main(argv: list[str] | None = None) -> None:

@@ -1,0 +1,27 @@
+# Deployment settings, sourced by render.sh, deploy.sh and backup.sh.
+# Copy to deploy/deploy.conf and edit. Renaming the brand/domains only needs changes here (then re-run render.sh --install).
+
+APP_NAME=gharka                          # prefix for service names, files, backups (gharka-api.service, gharka-*.tar.gz)
+BRAND_NAME=gharka                        # shown in the sites' <title>; must match VITE_BRAND_NAME / BRAND_NAME in env files
+
+CUSTOMER_DOMAIN=gharka.skdev.one
+VENDOR_DOMAIN=vendor-gharka.skdev.one    # cooks' app and /admin
+API_DOMAIN=api-gharka.skdev.one          # API + /media
+
+SERVICE_USER=gharka                      # dedicated unix user that runs the API
+BASE_DIR=/srv/gharka                     # put this on the persistent disk
+APP_DIR=$BASE_DIR/app                    # git checkout
+DATA_DIR=$BASE_DIR/data                  # SQLite database lives here
+UPLOAD_DIR=$BASE_DIR/uploads             # must equal UPLOAD_DIR in the backend env file (public/ + private/)
+BACKUP_DIR=$BASE_DIR/backups
+WWW_DIR=$BASE_DIR/www                    # built customer/ and vendor/ sites are copied here
+ENV_FILE=$BASE_DIR/backend.env           # backend settings (copy of backend/.env.example, chmod 600)
+DB_FILE=$DATA_DIR/$APP_NAME.db           # must match DATABASE_URL=sqlite:////srv/gharka/data/gharka.db
+# DATABASE_URL for backups when using Postgres instead of SQLite (backup.sh then uses pg_dump). Leave empty for SQLite.
+BACKUP_PG_URL=
+
+GIT_BRANCH=main
+API_PORT=8000
+API_WORKERS=1                            # keep 1 with SQLite; raise only with Postgres
+MAX_UPLOAD_MB=8                          # must equal MAX_UPLOAD_MB in the backend env file
+KEEP_BACKUP_DAYS=14

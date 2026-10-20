@@ -35,7 +35,7 @@ function OrdersList() {
                 <Link to={`/orders/${o.id}`} className="block rounded-2xl border border-cream-200 bg-white/85 p-4 shadow-soft active:scale-[.99]">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate font-serif text-lg font-bold">{o.vendor.display_name} {o.is_tiffin && <Badge tone="turmeric" className="ml-1 align-middle">Tiffin</Badge>}</p>
+                      <p className="truncate font-serif text-lg font-bold">{o.vendor.display_name} {o.is_tiffin && <Badge tone="turmeric" className="ml-1 align-middle font-sans text-xs leading-5">Tiffin</Badge>}</p>
                       <p className="text-sm text-ink-soft">{slotLabel(o.slot)} · {dateLong(o.date)}</p>
                     </div>
                     <Badge tone={STATUS_TONE[o.status]}>{STATUS_TEXT[o.status]}</Badge>

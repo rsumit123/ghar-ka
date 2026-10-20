@@ -4,6 +4,7 @@ import { api, ApiError, qs } from '../api';
 import { brand } from '../brand';
 import { Bi } from './Bi';
 import { Button } from './Button';
+import { Icon } from './Icon';
 import { Input } from './Input';
 import { L } from './leafletSetup';
 import type { LatLng } from './MapView';
@@ -79,7 +80,7 @@ export function LocationPicker({ value, onChange, fallbackCenter, height = 320, 
   return (
     <div className="space-y-3">
       <Button variant="secondary" size="xl" block onClick={locate} loading={busy}>
-        <span aria-hidden>📍</span> <Bi k="useMyLocation" only={mode} />
+        <Icon.Pin className="h-5 w-5" /> <Bi k="useMyLocation" only={mode} />
       </Button>
 
       <form onSubmit={search} className="flex gap-2">

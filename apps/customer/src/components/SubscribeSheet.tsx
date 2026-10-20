@@ -1,4 +1,4 @@
-import { ApiError, Button, Modal, api, cx, useAuth } from '@gharka/ui';
+import { api, ApiError, Button, cx, Icon, Modal, useAuth } from '@gharka/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { dayNum, daysText, haversineKm, isoDate, monthShort, rupees, slotLabel, weekdayIndex, weekdayShort } from '../lib/format';
@@ -125,9 +125,9 @@ function Body({ plan, vendor, onClose }: { plan: Plan; vendor: VendorProfile; on
         <h3 className="mb-2 font-semibold">How will you get it?</h3>
         <div className="grid gap-2.5">
           <FulfilmentOption selected={fulfilment === 'pickup'} disabled={!!options.pickupWhy} why={options.pickupWhy} onSelect={() => setFulfilment('pickup')}
-            title="Pick up" sub={`from ${vendor.display_name}'s kitchen`} icon="🚶" />
+            title="Pick up" sub={`from ${vendor.display_name}'s kitchen`} icon={<Icon.Walk className="h-8 w-8" />} />
           <FulfilmentOption selected={fulfilment === 'delivery'} disabled={!!options.deliveryWhy} why={options.deliveryWhy} onSelect={() => setFulfilment('delivery')}
-            title="Deliver to me" sub={`within ${vendor.delivery_radius_km} km`} icon="🛵" />
+            title="Deliver to me" sub={`within ${vendor.delivery_radius_km} km`} icon={<Icon.Bike className="h-8 w-8" />} />
         </div>
         {fulfilment === 'delivery' && (
           <div className="mt-3 space-y-3">
@@ -146,7 +146,7 @@ function Body({ plan, vendor, onClose }: { plan: Plan; vendor: VendorProfile; on
       <section className="rounded-2xl border border-dashed border-cream-300 bg-white/70 p-3.5">
         <p className="text-sm text-ink-soft">{daysText(plan.days_of_week)} · {plan.days_of_week.length} {plan.days_of_week.length === 1 ? 'meal' : 'meals'} a week · {rupees(plan.price_per_week)} per week</p>
         <div className="mt-1 flex items-baseline justify-between"><span className="font-semibold">Total for {weeks} {weeks === 1 ? 'week' : 'weeks'}</span><span className="font-serif text-2xl font-bold">{rupees(total)}</span></div>
-        <p className="mt-1 text-sm text-ink-muted">💵 Pay in cash as you collect each tiffin. Skip a day any time until {plan.cutoff_hours_before} hours before the meal.</p>
+        <p className="mt-1 text-sm text-ink-muted">Pay in cash as you collect each tiffin. Skip a day any time until {plan.cutoff_hours_before} hours before the meal.</p>
       </section>
 
       {blocked && <p className="text-sm font-medium text-terracotta-600">{blocked}</p>}

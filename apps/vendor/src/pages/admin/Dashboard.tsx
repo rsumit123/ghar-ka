@@ -1,4 +1,4 @@
-import { Card, Spinner, api } from '@gharka/ui';
+import { Card, Icon, Spinner, api } from '@gharka/ui';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { AdminDashboardData } from '../../lib/adminTypes';
@@ -28,7 +28,7 @@ export default function AdminDashboard() {
 
       {d.fssai_expiring_60d > 0 && (
         <Link to="/admin/fssai?expiring=60" className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-terracotta-300 bg-terracotta-50 p-4 shadow-soft">
-          <span className="text-3xl" aria-hidden>⏰</span>
+          <Icon.Warn className="h-8 w-8 shrink-0 text-terracotta-600" />
           <span className="min-w-0 flex-1">
             <span className="block font-semibold text-terracotta-800">{d.fssai_expiring_60d} FSSAI {d.fssai_expiring_60d === 1 ? 'registration expires' : 'registrations expire'} within 60 days</span>
             <span className="block text-sm text-terracotta-700">Cooks go offline the day theirs lapses. Open the tracker to chase renewals.</span>

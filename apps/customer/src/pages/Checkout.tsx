@@ -1,5 +1,5 @@
-import { ApiError, Button, Card, EmptyState, Input, OtpLogin, Spinner, api, brand, useAuth, type User } from '@gharka/ui';
-import { useEffect, useMemo, useState } from 'react';
+import { ApiError, Button, Card, EmptyState, Input, OtpLogin, Spinner, api, brand, cx, Icon, useAuth, type User } from '@gharka/ui';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LocationPicker } from '../components/LazyMaps';
 import { FulfilmentOption } from '../components/FulfilmentOption';
@@ -7,6 +7,7 @@ import { Shell } from '../components/Shell';
 import { cartCount, cartStore, cartTotal, useCart } from '../lib/cart';
 import { cutoffText, dateLong, haversineKm, rupees, slotLabel } from '../lib/format';
 import { placeStore } from '../lib/place';
+import { payForOrder } from '../lib/razorpay';
 import type { Fulfilment, OrderData, VendorProfile } from '../lib/types';
 
 type Pos = { lat: number; lng: number };
@@ -24,6 +25,7 @@ export default function Checkout() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [seeded, setSeeded] = useState(false);
+  const [method, setMethod] = useState<'cod' | 'razorpay'>('cod');
 
   useEffect(() => {
     if (!cart) return;
@@ -91,9 +93,19 @@ export default function Checkout() {
         fulfilment, vendor_id: cart.vendorId, date: cart.date, slot: cart.slot,
         ...(fulfilment === 'delivery' ? { delivery_address: address.trim(), lat: pos?.lat, lng: pos?.lng } : {}),
         note: note.trim() || undefined,
-        payment_method: 'cod',
+        payment_method: method,
       });
       cartStore.write(null);
+      if (method === 'razorpay') {
+        // The order exists (portions reserved). If they close the payment window they can pay from the order page.
+        try {
+          const result = await payForOrder(order, user!);
+          navigate(`/orders/${order.id}${result === 'paid' ? '?placed=1' : '?pay=1'}`, { replace: true });
+        } catch {
+          navigate(`/orders/${order.id}?pay=1`, { replace: true });
+        }
+        return;
+      }
       navigate(`/orders/${order.id}?placed=1`, { replace: true });
     } catch (e) {
       setError(e instanceof ApiError ? e.detail : 'Something went wrong. Please try again.');
@@ -119,9 +131,9 @@ export default function Checkout() {
             <h2 className="font-serif text-xl font-bold">How will you get it?</h2>
             <div className="mt-2 grid gap-2.5">
               <FulfilmentOption selected={fulfilment === 'pickup'} disabled={!!options.pickupWhy} why={options.pickupWhy} onSelect={() => setFulfilment('pickup')}
-                title="Pick up" sub={vendor.locality_name ? `from ${vendor.display_name}'s kitchen, ${vendor.locality_name}` : `from ${vendor.display_name}'s kitchen`} icon="🚶" />
+                title="Pick up" sub={vendor.locality_name ? `from ${vendor.display_name}'s kitchen, ${vendor.locality_name}` : `from ${vendor.display_name}'s kitchen`} icon={<Icon.Walk className="h-8 w-8" />} />
               <FulfilmentOption selected={fulfilment === 'delivery'} disabled={!!options.deliveryWhy} why={options.deliveryWhy} onSelect={() => setFulfilment('delivery')}
-                title="Deliver to me" sub={`within ${vendor.delivery_radius_km} km`} icon="🛵" />
+                title="Deliver to me" sub={`within ${vendor.delivery_radius_km} km`} icon={<Icon.Bike className="h-8 w-8" />} />
             </div>
             {fulfilment === 'pickup' && <p className="mt-2 text-sm text-ink-muted">The exact address is shared once the cook accepts your order.</p>}
           </section>
@@ -149,12 +161,12 @@ export default function Checkout() {
 
           <section className="mt-6">
             <h2 className="font-serif text-xl font-bold">Payment</h2>
-            <PaymentOptions />
+            <PaymentOptions method={method} onChange={setMethod} />
           </section>
 
           <div className="mt-6 rounded-2xl bg-white/70 px-4 py-3">
             <div className="flex items-center justify-between text-lg"><span className="font-semibold">Total ({cartCount(cart)} items)</span><span className="font-serif text-2xl font-bold">{rupees(cartTotal(cart))}</span></div>
-            <p className="text-sm text-ink-muted">Pay {rupees(cartTotal(cart))} in cash when you {fulfilment === 'pickup' ? 'pick up' : 'receive'} your food.</p>
+            <p className="text-sm text-ink-muted">{method === 'cod' ? <>Pay {rupees(cartTotal(cart))} in cash when you {fulfilment === 'pickup' ? 'pick up' : 'receive'} your food.</> : <>You&apos;ll pay online next. Unpaid orders are released after a few minutes.</>}</p>
           </div>
           {blocked && <p className="mt-3 text-sm font-medium text-terracotta-600">{blocked}</p>}
           {error && <p className="mt-3 rounded-xl bg-terracotta-50 p-3 font-medium text-terracotta-700" role="alert">{error}</p>}
@@ -166,21 +178,20 @@ export default function Checkout() {
   );
 }
 
-/** Payment methods. Cash on delivery today; Razorpay plugs in here in Phase 5 (flag: VITE_RAZORPAY_ENABLED + backend RAZORPAY_ENABLED). */
-function PaymentOptions() {
+/** Payment methods: cash on delivery always; "Pay online" (Razorpay) only when VITE_RAZORPAY_ENABLED=true. */
+function PaymentOptions({ method, onChange }: { method: 'cod' | 'razorpay'; onChange: (m: 'cod' | 'razorpay') => void }) {
+  const opt = (id: 'cod' | 'razorpay', title: string, sub: string, icon: ReactNode) => (
+    <button type="button" role="radio" aria-checked={method === id} onClick={() => onChange(id)}
+      className={cx('flex min-h-16 w-full items-center gap-3 rounded-2xl border-2 p-3.5 text-left', method === id ? 'border-leaf-500 bg-leaf-50' : 'border-cream-300 bg-white/60')}>
+      <span className="text-leaf-700" aria-hidden>{icon}</span>
+      <span className="flex-1"><span className="block font-semibold">{title}</span><span className="block text-sm text-ink-muted">{sub}</span></span>
+      {method === id && <span className="flex h-6 w-6 items-center justify-center rounded-full bg-leaf-500 text-white" aria-hidden><Icon.Check /></span>}
+    </button>
+  );
   return (
-    <div className="mt-2 grid gap-2.5">
-      <div className="flex min-h-16 items-center gap-3 rounded-2xl border-2 border-leaf-500 bg-leaf-50 p-3.5">
-        <span className="text-3xl" aria-hidden>💵</span>
-        <span className="flex-1"><span className="block font-semibold">Cash on delivery</span><span className="block text-sm text-ink-muted">Pay the cook directly</span></span>
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-leaf-500 text-white" aria-hidden>✓</span>
-      </div>
-      {brand.razorpayEnabled && (
-        <div className="flex min-h-16 items-center gap-3 rounded-2xl border-2 border-cream-300 bg-white/60 p-3.5 opacity-60">
-          <span className="text-3xl" aria-hidden>💳</span>
-          <span className="flex-1"><span className="block font-semibold">Pay online</span><span className="block text-sm text-ink-muted">UPI, cards. Coming soon.</span></span>
-        </div>
-      )}
+    <div className="mt-2 grid gap-2.5" role="radiogroup" aria-label="Payment method">
+      {opt('cod', 'Cash on delivery', 'Pay the cook directly', <Icon.Cash />)}
+      {brand.razorpayEnabled && opt('razorpay', 'Pay online', 'UPI, cards, netbanking. Order is held for a few minutes.', <Icon.Card />)}
     </div>
   );
 }

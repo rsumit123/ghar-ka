@@ -1,6 +1,7 @@
-import { ApiError, Badge, Button, Card, Modal, RequireRole, Spinner, TiffinIllustration, api, brand, cx } from '@gharka/ui';
+import { api, ApiError, Badge, brand, Button, Card, cx, Icon, Modal, RequireRole, Spinner, TiffinIllustration, useAuth } from '@gharka/ui';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { payForOrder } from '../lib/razorpay';
 import { ReportSheet } from '../components/ReportSheet';
 import { ReviewSection } from '../components/ReviewForm';
 import { Shell } from '../components/Shell';
@@ -9,10 +10,10 @@ import type { OrderData } from '../lib/types';
 import { STATUS_TEXT, STATUS_TONE } from './Orders';
 
 const STEPS = [
-  { key: 'placed', label: 'Placed', icon: '🧾' },
-  { key: 'accepted', label: 'Accepted', icon: '👩‍🍳' },
-  { key: 'ready', label: 'Ready', icon: '🍱' },
-  { key: 'completed', label: 'Done', icon: '😋' },
+  { key: 'placed', label: 'Placed', icon: <Icon.Receipt className="h-5 w-5" /> },
+  { key: 'accepted', label: 'Accepted', icon: <Icon.Chef className="h-5 w-5" /> },
+  { key: 'ready', label: 'Ready', icon: <Icon.Tiffin className="h-5 w-5" /> },
+  { key: 'completed', label: 'Done', icon: <Icon.Smile className="h-5 w-5" /> },
 ] as const;
 
 export default function OrderDetail() {
@@ -28,6 +29,7 @@ function Detail() {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [reporting, setReporting] = useState(false);
+  const { user } = useAuth();
 
   const load = useCallback(() => {
     api.get<OrderData>(`/orders/${id}`).then(setO).catch((e) => setError(e instanceof ApiError ? e.detail : 'Could not load this order'));
@@ -37,6 +39,20 @@ function Detail() {
     const t = window.setInterval(load, 30_000);
     return () => window.clearInterval(t);
   }, [load]);
+
+  async function pay() {
+    if (!o) return;
+    setBusy(true);
+    setActionError(null);
+    try {
+      await payForOrder(o, user ?? {});
+      load();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Payment did not go through');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function cancel() {
     setBusy(true);
@@ -54,7 +70,8 @@ function Detail() {
   if (error) return <Shell><Card><p className="text-terracotta-600" role="alert">{error}</p><Link to="/orders" className="mt-3 inline-block underline">Back to my orders</Link></Card></Shell>;
   if (!o) return <Shell><div className="mt-16 flex justify-center"><Spinner className="h-8 w-8" /></div></Shell>;
 
-  const justPlaced = params.get('placed') === '1' && o.status === 'placed';
+  const awaitingPayment = o.payment_method === 'razorpay' && o.payment_status !== 'paid' && o.status === 'placed';
+  const justPlaced = params.get('placed') === '1' && o.status === 'placed' && !awaitingPayment;
   const stepIndex = STEPS.findIndex((s) => s.key === o.status);
   const wa = o.vendor.whatsapp_digits ? waLink(o.vendor.whatsapp_digits, `Hi ${o.vendor.display_name}, about my ${brand.name} order #${o.id}`) : null;
 
@@ -65,8 +82,16 @@ function Detail() {
           <TiffinIllustration className="h-32 w-24" />
           <p className="mt-2 font-hand text-3xl text-leaf-700">your order is in!</p>
           <h1 className="font-serif text-2xl font-bold">{o.vendor.display_name} will confirm shortly</h1>
-          <p className="mt-1 text-ink-soft">We&apos;ll keep this page updated. You can pay {rupees(o.total)} in cash.</p>
+          <p className="mt-1 text-ink-soft">We&apos;ll keep this page updated. {o.payment_method === 'cod' ? `You can pay ${rupees(o.total)} in cash.` : 'Payment received. Thank you!'}</p>
         </div>
+      )}
+      {awaitingPayment && (
+        <Card className="mb-5 border-turmeric-300 bg-turmeric-50">
+          <p className="font-serif text-xl font-bold">Complete your payment</p>
+          <p className="mt-0.5 text-ink-soft">Your portions are held for a few minutes. The cook sees your order once you&apos;ve paid.</p>
+          {actionError && <p className="mt-2 font-medium text-terracotta-600" role="alert">{actionError}</p>}
+          <Button block className="mt-3" loading={busy} onClick={() => void pay()}>Pay {rupees(o.total)}</Button>
+        </Card>
       )}
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -88,7 +113,7 @@ function Detail() {
             return (
               <li key={s.key} className="relative flex flex-1 flex-col items-center text-center">
                 {i > 0 && <span className={cx('absolute right-1/2 top-5 h-1 w-full rounded-full', i <= stepIndex ? 'bg-leaf-500' : 'bg-cream-300')} aria-hidden />}
-                <span className={cx('relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 text-lg', done ? 'border-leaf-500 bg-leaf-500' : 'border-cream-300 bg-white')} aria-hidden>{s.icon}</span>
+                <span className={cx('relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 text-lg', done ? 'border-leaf-500 bg-leaf-500 text-white' : 'border-cream-300 bg-white text-ink-muted')} aria-hidden>{s.icon}</span>
                 <span className={cx('mt-1 text-xs font-semibold', done ? 'text-leaf-700' : 'text-ink-muted')}>{s.label}{i === stepIndex && <span className="sr-only"> (current)</span>}</span>
               </li>
             );
@@ -120,7 +145,7 @@ function Detail() {
       {o.status === 'completed' && <ReviewSection order={o} onDone={setO} />}
 
       <div className="mt-5 space-y-2">
-        {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-leaf-500 bg-white/70 font-semibold text-leaf-700">💬 Message {o.vendor.display_name}</a>}
+        {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-leaf-500 bg-white/70 font-semibold text-leaf-700"><Icon.Chat className="h-5 w-5" /> Message {o.vendor.display_name}</a>}
         {o.can_cancel && o.cutoff_at && (
           <>
             <Button variant="outline" block onClick={() => setAsking(true)}>Cancel order</Button>
@@ -129,7 +154,7 @@ function Detail() {
         )}
         {!o.can_cancel && o.status === 'placed' && <p className="text-center text-sm text-ink-muted">The order-by time has passed, so this order can&apos;t be cancelled. Message the cook if something changed.</p>}
         {o.status === 'accepted' && <p className="text-center text-sm text-ink-muted">The cook has started on your order. To change it, message her.</p>}
-        <Button variant="ghost" block onClick={() => setReporting(true)}>⚠ Report a problem</Button>
+        <Button variant="ghost" block onClick={() => setReporting(true)}><Icon.Warn className="mr-1.5 h-5 w-5" /> Report a problem</Button>
         <Link to="/orders" className="block"><Button variant="ghost" block>All my orders</Button></Link>
       </div>
       <ReportSheet open={reporting} onClose={() => setReporting(false)} vendor={{ id: o.vendor.id, name: o.vendor.display_name }} orderId={o.id} />

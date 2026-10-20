@@ -1,14 +1,15 @@
-import { Bi, Page, type DictKey } from '@gharka/ui';
+import { Bi, Icon, Page, type DictKey } from '@gharka/ui';
+import type { ReactNode } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { SiteHeader } from '../../components/SiteHeader';
 import { useVendor } from '../../lib/useVendor';
 
-const TILES: { to: string; key: DictKey; icon: string; tone: string }[] = [
-  { to: '/orders', key: 'orders', icon: '🧾', tone: 'bg-turmeric-100 border-turmeric-300' },
-  { to: '/menu', key: 'menu', icon: '🍛', tone: 'bg-terracotta-100 border-terracotta-200' },
-  { to: '/plans', key: 'plans', icon: '🍱', tone: 'bg-leaf-100 border-leaf-200' },
-  { to: '/delivery', key: 'delivery', icon: '🛵', tone: 'bg-cream-100 border-cream-300' },
-  { to: '/profile', key: 'profile', icon: '👩‍🍳', tone: 'bg-turmeric-50 border-turmeric-200' },
+const TILES: { to: string; key: DictKey; icon: ReactNode; tone: string }[] = [
+  { to: '/orders', key: 'orders', icon: <Icon.Receipt className="h-12 w-12" />, tone: 'bg-turmeric-100 border-turmeric-300' },
+  { to: '/menu', key: 'menu', icon: <Icon.Pot className="h-12 w-12" />, tone: 'bg-terracotta-100 border-terracotta-200' },
+  { to: '/plans', key: 'plans', icon: <Icon.Tiffin className="h-12 w-12" />, tone: 'bg-leaf-100 border-leaf-200' },
+  { to: '/delivery', key: 'delivery', icon: <Icon.Bike className="h-12 w-12" />, tone: 'bg-cream-100 border-cream-300' },
+  { to: '/profile', key: 'profile', icon: <Icon.Chef className="h-12 w-12" />, tone: 'bg-turmeric-50 border-turmeric-200' },
 ];
 
 /** Live vendors land here; everyone else is routed to onboarding / status. */
@@ -29,7 +30,7 @@ function Home() {
         {TILES.map((tile) => (
           <Link key={tile.to} to={tile.to}
             className={`flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-2 p-3 text-center shadow-soft transition active:scale-[.98] ${tile.tone}`}>
-            <span className="text-5xl" aria-hidden>{tile.icon}</span>
+            {tile.icon}
             <span className="text-lg font-bold leading-tight"><Bi k={tile.key} /></span>
           </Link>
         ))}

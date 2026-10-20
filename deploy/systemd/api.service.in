@@ -1,0 +1,22 @@
+[Unit]
+Description=${BRAND_NAME} API (uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=${SERVICE_USER}
+Group=${SERVICE_USER}
+WorkingDirectory=${APP_DIR}/backend
+EnvironmentFile=${ENV_FILE}
+# SQLite: keep a single worker (writes are serialised anyway; WAL + busy_timeout cover the threadpool). Raise with Postgres.
+ExecStart=${APP_DIR}/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port ${API_PORT} --workers ${API_WORKERS} --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=${DATA_DIR} ${UPLOAD_DIR}
+
+[Install]
+WantedBy=multi-user.target

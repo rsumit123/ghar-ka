@@ -3,15 +3,20 @@ from datetime import date, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import and_, select
 
 from app.deps import DbDep, require_role
-from app.models import MenuOffering, Order, OrderStatus, Role, User
+from app.models import MenuOffering, Order, OrderStatus, PaymentMethod, PaymentStatus, Role, User
 from app.schemas.order import VendorCancelIn
-from app.services import clock, order_views, orders
+from app.services import clock, order_views, orders, payments
 from app.services.subscriptions import materialize_subscription_orders
 from app.services.menu import slot_rank
 from app.services.vendors import get_vendor_for_user
+
+# Online orders that haven't been paid yet are invisible to the cook (they may still time out).
+_AWAITING_PAYMENT = and_(
+    Order.payment_method == PaymentMethod.razorpay, Order.payment_status != PaymentStatus.paid, Order.status == OrderStatus.placed,
+)
 
 router = APIRouter(prefix="/vendor/orders", tags=["vendor-orders"])
 VendorUser = Annotated[User, Depends(require_role(Role.vendor))]
@@ -45,9 +50,11 @@ def list_orders(user: VendorUser, db: DbDep, date: date | None = None):
     """Orders for one day plus per-dish sold counts. Tiffin (subscription) orders are created lazily here."""
     vendor = _vendor(db, user)
     day = date or clock.local_today()
+    payments.expire_unpaid_orders(db, clock.now(), vendor_id=vendor.id)
     materialize_subscription_orders(db, max(day, clock.local_today() + timedelta(days=1)), vendor_id=vendor.id)
     rows = db.scalars(
-        select(Order).where(Order.vendor_id == vendor.id, Order.date == day).order_by(slot_rank(Order.slot), Order.created_at, Order.id)
+        select(Order).where(Order.vendor_id == vendor.id, Order.date == day, ~_AWAITING_PAYMENT)
+        .order_by(slot_rank(Order.slot), Order.created_at, Order.id)
     ).all()
     dishes = db.scalars(
         select(MenuOffering).where(MenuOffering.vendor_id == vendor.id, MenuOffering.date == day)

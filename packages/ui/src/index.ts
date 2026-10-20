@@ -10,6 +10,7 @@ export * from './components/Button';
 export * from './components/Card';
 export * from './components/DietMark';
 export * from './components/EmptyState';
+export * from './components/Icon';
 export * from './components/Input';
 export * from './components/Modal';
 export * from './components/OtpLogin';

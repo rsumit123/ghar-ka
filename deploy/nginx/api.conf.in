@@ -1,0 +1,33 @@
+# ${BRAND_NAME} API (uvicorn on 127.0.0.1:${API_PORT}) and public uploads. certbot --nginx adds the 443 block + redirect.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${API_DOMAIN};
+
+    # Slightly above MAX_UPLOAD_MB to leave room for multipart overhead; the app enforces the exact limit.
+    client_max_body_size ${CLIENT_MAX_BODY_SIZE}m;
+
+    gzip on;
+    gzip_types application/json text/css application/javascript;
+
+    # Public photos only. UPLOAD_DIR/private is never mapped; it is only reachable via the admin API endpoint.
+    location /media/ {
+        alias ${UPLOAD_DIR}/public/;
+        autoindex off;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        add_header X-Content-Type-Options nosniff;
+        try_files $uri =404;
+    }
+    location ^~ /media/private { return 404; }
+
+    location / {
+        proxy_pass http://127.0.0.1:${API_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+}

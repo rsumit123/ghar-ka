@@ -46,7 +46,7 @@ export function ReviewSection({ order, onDone }: { order: OrderData; onDone: (o:
       <div className="mt-2 flex justify-between gap-1" role="radiogroup" aria-label="Rating">
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={`${n} star${n > 1 ? 's' : ''}`} onClick={() => setRating(n)}
-            className={cx('flex h-14 flex-1 items-center justify-center rounded-2xl text-4xl transition active:scale-95', n <= rating ? 'bg-turmeric-100 text-turmeric-500' : 'bg-cream-100 text-cream-300')}>★</button>
+            className={cx('flex h-14 flex-1 items-center justify-center rounded-2xl text-4xl transition active:scale-95', n <= rating ? 'bg-turmeric-100 text-turmeric-600' : 'bg-cream-100 text-ink-muted/50')}>★</button>
         ))}
       </div>
       <p className="mt-1 h-5 text-center font-hand text-xl text-terracotta-600">{WORDS[rating]}</p>

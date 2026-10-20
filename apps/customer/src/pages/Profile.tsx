@@ -1,4 +1,4 @@
-import { ApiError, Button, Card, Input, RequireRole, api, useAuth, type User } from '@gharka/ui';
+import { api, ApiError, Button, Card, Icon, Input, RequireRole, useAuth, type User } from '@gharka/ui';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LocationPicker } from '../components/LazyMaps';
@@ -59,7 +59,7 @@ function ProfileForm() {
         <section className="pt-4">
           <h2 className="font-serif text-xl font-bold">Help</h2>
           <p className="text-sm text-ink-muted">Something wrong with an order or a cook? Tell our team.</p>
-          <Button variant="outline" block className="mt-2" onClick={() => setReporting(true)}>⚠ Report a problem</Button>
+          <Button variant="outline" block className="mt-2" onClick={() => setReporting(true)}><Icon.Warn className="mr-1.5 h-5 w-5" /> Report a problem</Button>
           {reports.length > 0 && (
             <ul className="mt-3 space-y-2">
               {reports.map((r) => (

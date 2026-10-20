@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.models import (
     Fulfilment, MenuOffering, Order, OrderItem, OrderStatus, PaymentMethod, PaymentStatus, User, Vendor,
 )
+from app.config import get_settings
 from app.schemas.order import OrderIn
 from app.services import clock
 from app.services.distance import haversine_km
@@ -95,8 +96,8 @@ def place_order(db: Session, customer: User, payload: OrderIn, now: datetime) ->
 
 
 def _place_order(db: Session, customer: User, payload: OrderIn, now: datetime) -> Order:
-    if payload.payment_method != PaymentMethod.cod:
-        raise OrderError("Online payment isn't available yet. Please choose cash on delivery.", 422)
+    if payload.payment_method == PaymentMethod.razorpay and not get_settings().RAZORPAY_ENABLED:
+        raise OrderError("Online payment isn't available. Please choose cash on delivery.", 422)
 
     qty_by_id = {i.offering_id: i.qty for i in payload.items}
     offerings = {
@@ -212,6 +213,9 @@ def change_status(
     old = order.status
     if not can_transition(old, new):
         raise OrderError(f"An order that is {old.value} can't be marked {new.value}.", 409)
+    if (new == OrderStatus.accepted and order.payment_method == PaymentMethod.razorpay
+            and order.payment_status != PaymentStatus.paid):
+        raise OrderError("This order is waiting for the customer's online payment.", 409)
     values: dict = {"status": new, "updated_at": now}
     if new == OrderStatus.cancelled:
         values["cancel_reason"] = reason

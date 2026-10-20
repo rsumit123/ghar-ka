@@ -1,4 +1,4 @@
-import { ApiError, Badge, Button, Card, EmptyState, Modal, Spinner, api, brand, cx, mediaUrl, qs, useAuth } from '@gharka/ui';
+import { api, ApiError, Badge, brand, Button, Card, cx, EmptyState, Icon, mediaUrl, Modal, qs, Spinner, useAuth } from '@gharka/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { CookAvatar } from '../components/CookAvatar';
@@ -108,7 +108,7 @@ export default function Vendor() {
           <p className="mt-2 text-ink-soft">No reviews yet. Be the first to taste and tell.</p>
         ) : (
           <ul className="mt-3 space-y-3">
-            {v.reviews.map((r) => (
+            {v.reviews.slice(0, 6).map((r) => (
               <li key={r.id} className="rounded-2xl border border-cream-200 bg-white/80 p-3.5">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-semibold">{r.customer_name}</span>
@@ -154,14 +154,14 @@ function Hero({ v }: { v: VendorProfile }) {
         {v.stats.orders_served > 0 && <span className="text-sm font-semibold text-ink-soft">{v.stats.orders_served} meals served</span>}
       </div>
       <div className="mt-2.5 flex flex-wrap gap-1.5">
-        {v.fssai_registered && <Badge tone="leaf">✓ FSSAI registered</Badge>}
+        {v.fssai_registered && <Badge tone="leaf"><Icon.Check className="h-3.5 w-3.5" /> FSSAI registered</Badge>}
         {v.offers_pickup && <Badge>Pickup</Badge>}
         {v.delivery_radius_km > 0 && <Badge tone={v.delivers_to_you ? 'turmeric' : 'neutral'}>🛵 {v.delivers_to_you ? 'Delivers to you' : `Delivers within ${v.delivery_radius_km} km`}</Badge>}
       </div>
       {wa && (
         <a href={wa} target="_blank" rel="noopener noreferrer"
           className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-2xl border-2 border-leaf-500 bg-white/70 px-5 font-semibold text-leaf-700 active:bg-leaf-50">
-          <span aria-hidden>💬</span> Message on WhatsApp
+          <Icon.Chat className="h-5 w-5" /> Message on WhatsApp
         </a>
       )}
     </header>
@@ -261,8 +261,8 @@ function BasketBar() {
     <div className="fixed inset-x-0 bottom-[3.75rem] z-20 px-4 sm:bottom-4">
       <button type="button" onClick={() => navigate('/cart')}
         className="mx-auto flex min-h-14 w-full max-w-md items-center justify-between rounded-2xl bg-ink px-5 text-cream shadow-lift active:scale-[.99]">
-        <span className="font-semibold">🧺 {cartCount(cart)} {cartCount(cart) === 1 ? 'item' : 'items'} · {cart.vendorName}</span>
-        <span className="font-bold">{rupees(cartTotal(cart))} →</span>
+        <span className="font-semibold"><Icon.Basket className="mr-1 inline h-5 w-5 align-text-bottom" /> {cartCount(cart)} {cartCount(cart) === 1 ? 'item' : 'items'} · {cart.vendorName}</span>
+        <span className="font-bold">{rupees(cartTotal(cart))} <Icon.Arrow className="inline h-4 w-4" /></span>
       </button>
     </div>
   );

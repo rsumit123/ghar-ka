@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.routers import (
-    admin, auth, customer, feedback, geo, menu, public, subscriptions, vendor, vendor_orders, vendor_plans,
+    admin, auth, customer, feedback, geo, menu, payments, public, subscriptions, vendor, vendor_orders, vendor_plans,
 )
 
 API_PREFIX = "/api/v1"
@@ -22,6 +22,7 @@ ROUTERS: list[APIRouter] = [
     vendor_orders.router,
     vendor_plans.router,
     customer.router,
+    payments.router,
     subscriptions.router,
     feedback.router,
     admin.router,

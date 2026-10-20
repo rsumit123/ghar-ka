@@ -1,0 +1,16 @@
+[Unit]
+Description=${BRAND_NAME}: create tiffin subscription orders and cancel unpaid online orders
+After=${APP_NAME}-api.service
+
+[Service]
+Type=oneshot
+User=${SERVICE_USER}
+Group=${SERVICE_USER}
+WorkingDirectory=${APP_DIR}/backend
+EnvironmentFile=${ENV_FILE}
+ExecStart=${APP_DIR}/backend/.venv/bin/python -m app.cli materialize
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=${DATA_DIR} ${UPLOAD_DIR}
