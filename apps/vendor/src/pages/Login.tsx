@@ -6,7 +6,7 @@ import { SiteHeader } from '../components/SiteHeader';
 export default function Login() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const from = (useLocation().state as { from?: string } | null)?.from ?? '/orders';
+  const from = (useLocation().state as { from?: string } | null)?.from ?? '/';
 
   useEffect(() => {
     if (user?.role === 'vendor') navigate(from, { replace: true });
