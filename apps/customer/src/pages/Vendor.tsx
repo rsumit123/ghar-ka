@@ -6,14 +6,13 @@ import { DateChips, SlotToggle, next7 } from '../components/Chips';
 import { DietMark } from '../components/DietMark';
 import { MapView } from '../components/LazyMaps';
 import { Shell } from '../components/Shell';
+import { SubscribeSheet } from '../components/SubscribeSheet';
 import { Stars } from '../components/Stars';
 import { Stepper } from '../components/Stepper';
 import { MAX_QTY, cartCount, cartTotal, sameMeal, useCart, withQty } from '../lib/cart';
-import { cutoffText, dateLong, dateTimeShort, isoDate, rupees, slotLabel, waLink } from '../lib/format';
+import { cutoffText, dateLong, dateTimeShort, daysText, isoDate, rupees, slotLabel, waLink } from '../lib/format';
 import { placeStore } from '../lib/place';
-import type { Dish, MenuGroup, Slot, VendorProfile } from '../lib/types';
-
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+import type { Dish, MenuGroup, Plan, Slot, VendorProfile } from '../lib/types';
 
 export default function Vendor() {
   const { id } = useParams();
@@ -21,6 +20,7 @@ export default function Vendor() {
   const { user } = useAuth();
   const [v, setV] = useState<VendorProfile | null>(null);
   const [error, setError] = useState<{ status: number; text: string } | null>(null);
+  const [subscribing, setSubscribing] = useState<Plan | null>(null);
 
   const date = params.get('date') && next7().includes(params.get('date')!) ? params.get('date')! : isoDate(0);
   const slot: Slot = params.get('slot') === 'dinner' ? 'dinner' : 'lunch';
@@ -75,12 +75,15 @@ export default function Vendor() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-serif text-lg font-bold"><DietMark diet={p.diet} className="mr-1.5 align-[-2px]" />{p.name}</h3>
-                    <p className="text-sm text-ink-soft">{slotLabel(p.slot)} · {p.days_of_week.map((d) => DAYS[d]).join(', ')}</p>
+                    <p className="text-sm text-ink-soft">{slotLabel(p.slot)} · {daysText(p.days_of_week)}</p>
                     {p.description && <p className="mt-1 text-sm text-ink-soft">{p.description}</p>}
                   </div>
                   <p className="shrink-0 text-right font-semibold">{rupees(p.price_per_week)}<span className="block text-xs font-normal text-ink-muted">per week</span></p>
                 </div>
-                <p className="mt-2 text-sm text-ink-muted">Subscribing opens soon. Message the cook on WhatsApp to ask.</p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <p className="text-sm text-ink-muted">Skip any day up to {p.cutoff_hours_before}h before. Pay in cash.</p>
+                  <Button size="sm" className="shrink-0" onClick={() => setSubscribing(p)}>Subscribe</Button>
+                </div>
               </Card>
             ))}
           </div>
@@ -118,6 +121,7 @@ export default function Vendor() {
           </ul>
         )}
       </section>
+      <SubscribeSheet plan={subscribing} vendor={v} onClose={() => setSubscribing(null)} />
       <BasketBar />
     </Shell>
   );

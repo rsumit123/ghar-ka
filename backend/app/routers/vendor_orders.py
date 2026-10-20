@@ -1,5 +1,5 @@
 """Vendor-side order handling: list by date, accept -> ready -> complete, cancel with reason."""
-from datetime import date
+from datetime import date, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,6 +9,7 @@ from app.deps import DbDep, require_role
 from app.models import MenuOffering, Order, OrderStatus, Role, User
 from app.schemas.order import VendorCancelIn
 from app.services import clock, order_views, orders
+from app.services.subscriptions import materialize_subscription_orders
 from app.services.menu import slot_rank
 from app.services.vendors import get_vendor_for_user
 
@@ -41,9 +42,10 @@ def _run(db, vendor, order_id: int, new: OrderStatus, reason: str | None = None)
 
 @router.get("")
 def list_orders(user: VendorUser, db: DbDep, date: date | None = None):
-    """Orders for one day plus per-dish sold counts. (Phase 4 hook: materialize subscription orders here.)"""
+    """Orders for one day plus per-dish sold counts. Tiffin (subscription) orders are created lazily here."""
     vendor = _vendor(db, user)
     day = date or clock.local_today()
+    materialize_subscription_orders(db, max(day, clock.local_today() + timedelta(days=1)), vendor_id=vendor.id)
     rows = db.scalars(
         select(Order).where(Order.vendor_id == vendor.id, Order.date == day).order_by(slot_rank(Order.slot), Order.created_at, Order.id)
     ).all()

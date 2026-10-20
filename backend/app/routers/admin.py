@@ -1,4 +1,5 @@
 """Admin API. Every state-changing action writes an AuditLog row (entity='vendor', entity_id=vendor.id for vendor actions)."""
+import datetime as dt
 from datetime import timedelta
 from typing import Annotated
 
@@ -8,14 +9,17 @@ from sqlalchemy import func, or_, select
 
 from app.deps import DbDep, require_role
 from app.models import (
-    AuditLog, FssaiRecord, FssaiStatus, Locality, ReviewStatus, Role, User, Vendor, VendorMedia,
+    AuditLog, Complaint, ComplaintStatus, FssaiRecord, FssaiStatus, Locality, Order, OrderStatus, ReviewStatus, Role,
+    Subscription, SubscriptionStatus, User, Vendor, VendorMedia,
 )
+from app.schemas.subscription import ComplaintUpdate
 from app.schemas.locality import LocalityOut
 from app.schemas.vendor import FssaiIn, LocalityIn, NoteIn, OverrideIn
 from app.db import utcnow
 from app.services import images
 from app.services.audit import write_audit
 from app.services.clock import local_today
+from app.services.subscriptions import end_date as sub_end_date
 from app.services.golive import is_vendor_live, live_vendor_filter
 from app.services.sessions import delete_user_sessions
 from app.services.vendors import PRIVATE_DOC_KINDS, locality_name, media_out, missing_docs
@@ -75,11 +79,43 @@ def dashboard(db: DbDep):
         FssaiRecord.expiry_date.is_not(None),
         FssaiRecord.expiry_date <= today + timedelta(days=EXPIRY_WARN_DAYS),
     ))
+    week_start = today - timedelta(days=today.weekday())  # Monday
+    live_orders = Order.status != OrderStatus.cancelled
+
+    def orders_between(lo, hi) -> int:
+        return db.scalar(select(func.count()).select_from(Order).where(live_orders, Order.date >= lo, Order.date <= hi)) or 0
+
+    # Repeat customers: >=2 completed orders / >=1 completed orders. None when nobody has completed an order yet.
+    per_customer = (
+        select(Order.customer_id, func.count().label("n")).where(Order.status == OrderStatus.completed)
+        .group_by(Order.customer_id).subquery()
+    )
+    served = db.scalar(select(func.count()).select_from(per_customer)) or 0
+    repeat = db.scalar(select(func.count()).select_from(per_customer).where(per_customer.c.n >= 2)) or 0
+
+    series_start = today - timedelta(days=13)
+    by_day = dict(db.execute(
+        select(Order.date, func.count()).where(live_orders, Order.date >= series_start, Order.date <= today)
+        .group_by(Order.date)
+    ).all())
+    active_subs = sum(
+        1 for sub in db.scalars(select(Subscription).where(Subscription.status == SubscriptionStatus.active))
+        if sub_end_date(sub) >= today
+    )
     return {
         "active_vendors": active, "live_vendors": live, "pending_vendors": pending,
         "fssai_expiring_60d": expiring,
-        # Filled in by the orders phase:
-        "orders_today": 0, "orders_this_week": 0, "repeat_customer_rate": 0.0,
+        # Cancelled orders are not counted. Week = Monday..Sunday in APP_TIMEZONE.
+        "orders_today": orders_between(today, today),
+        "orders_this_week": orders_between(week_start, week_start + timedelta(days=6)),
+        "repeat_customer_rate": (repeat / served) if served else None,
+        "repeat_customers": repeat, "customers_served": served,
+        "active_subscriptions": active_subs,
+        "open_complaints": db.scalar(select(func.count()).select_from(Complaint).where(Complaint.status == ComplaintStatus.open)) or 0,
+        "orders_per_day": [
+            {"date": series_start + timedelta(days=i), "count": by_day.get(series_start + timedelta(days=i), 0)}
+            for i in range(14)
+        ],
     }
 
 
@@ -211,6 +247,93 @@ def fssai_tracker(db: DbDep, expiring_within: Annotated[int | None, Query(ge=0, 
         }
         for f, v in db.execute(stmt).all()
     ]
+
+
+# ---------------------------------------------------------------- orders
+@router.get("/orders")
+def admin_orders(
+    db: DbDep, vendor_id: int | None = None, date_from: dt.date | None = None, date_to: dt.date | None = None,
+    status: OrderStatus | None = None, page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 25,
+):
+    base = select(Order)
+    if vendor_id is not None:
+        base = base.where(Order.vendor_id == vendor_id)
+    if date_from:
+        base = base.where(Order.date >= date_from)
+    if date_to:
+        base = base.where(Order.date <= date_to)
+    # Status counts respect the other filters but not the status filter itself (they label the filter chips).
+    sub = base.subquery()
+    counts = dict(db.execute(select(sub.c.status, func.count()).group_by(sub.c.status)).all())
+    summary = {s.value: counts.get(s.value, 0) for s in OrderStatus}
+    if status:
+        base = base.where(Order.status == status)
+    total = db.scalar(select(func.count()).select_from(base.subquery())) or 0
+    rows = db.scalars(base.order_by(Order.date.desc(), Order.id.desc()).limit(page_size).offset((page - 1) * page_size)).all()
+    customers = {u.id: u for u in db.scalars(select(User).where(User.id.in_({o.customer_id for o in rows})))} if rows else {}
+    vendors = {v.id: v for v in db.scalars(select(Vendor).where(Vendor.id.in_({o.vendor_id for o in rows})))} if rows else {}
+    return {
+        "total": total, "page": page, "page_size": page_size, "summary": summary,
+        "items": [
+            {
+                "id": o.id, "date": o.date, "slot": o.slot, "status": o.status, "fulfilment": o.fulfilment,
+                "total": o.total, "payment_method": o.payment_method, "payment_status": o.payment_status,
+                "is_tiffin": o.subscription_id is not None, "created_at": o.created_at, "cancel_reason": o.cancel_reason,
+                "customer": {"id": o.customer_id, "name": customers[o.customer_id].name if o.customer_id in customers else "",
+                             "phone": customers[o.customer_id].phone if o.customer_id in customers else None},
+                "vendor": {"id": o.vendor_id, "name": vendors[o.vendor_id].display_name if o.vendor_id in vendors else ""},
+                "items": [{"name": i.name, "qty": i.qty, "unit_price": i.unit_price} for i in o.items],
+            }
+            for o in rows
+        ],
+    }
+
+
+# ---------------------------------------------------------------- complaints
+def _complaint_row(c: Complaint, customer: User | None, vendor: Vendor | None, order: Order | None) -> dict:
+    return {
+        "id": c.id, "text": c.text, "status": c.status, "admin_note": c.admin_note, "created_at": c.created_at,
+        "customer": {"id": c.customer_id, "name": customer.name if customer else "", "phone": customer.phone if customer else None},
+        "vendor": {"id": c.vendor_id, "name": vendor.display_name if vendor else ""},
+        "order": {"id": order.id, "date": order.date, "slot": order.slot, "status": order.status, "total": order.total}
+        if order else None,
+    }
+
+
+@router.get("/complaints")
+def admin_complaints(db: DbDep, status: ComplaintStatus | None = None, page: Annotated[int, Query(ge=1)] = 1,
+                     page_size: Annotated[int, Query(ge=1, le=100)] = 50):
+    base = select(Complaint)
+    counts = dict(db.execute(select(Complaint.status, func.count()).group_by(Complaint.status)).all())
+    if status:
+        base = base.where(Complaint.status == status)
+    total = db.scalar(select(func.count()).select_from(base.subquery())) or 0
+    rows = db.scalars(base.order_by(Complaint.id.desc()).limit(page_size).offset((page - 1) * page_size)).all()
+    return {
+        "total": total, "page": page, "page_size": page_size,
+        "summary": {s.value: counts.get(s.value, 0) for s in ComplaintStatus},
+        "items": [
+            _complaint_row(c, db.get(User, c.customer_id), db.get(Vendor, c.vendor_id),
+                           db.get(Order, c.order_id) if c.order_id else None)
+            for c in rows
+        ],
+    }
+
+
+@router.put("/complaints/{complaint_id}")
+def update_complaint(complaint_id: int, body: ComplaintUpdate, admin: AdminUser, db: DbDep):
+    c = db.get(Complaint, complaint_id)
+    if c is None:
+        raise HTTPException(404, "Complaint not found")
+    before = {"status": c.status.value, "admin_note": c.admin_note}
+    c.status = ComplaintStatus(body.status)
+    c.admin_note = body.admin_note or None
+    write_audit(db, admin.id, "complaint.update", "complaint", c.id,
+                {"vendor_id": c.vendor_id, "before": before, "after": {"status": c.status.value, "admin_note": c.admin_note}})
+    db.commit()
+    return _complaint_row(c, db.get(User, c.customer_id), db.get(Vendor, c.vendor_id),
+                          db.get(Order, c.order_id) if c.order_id else None)
 
 
 # ---------------------------------------------------------------- audit

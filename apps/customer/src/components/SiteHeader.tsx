@@ -25,6 +25,7 @@ export function SiteHeader() {
       tagline="ghar jaisa khaana"
       nav={user ? (
         <>
+          <NavLink to="/tiffins" className={navCls}>My tiffins</NavLink>
           <NavLink to="/orders" className={navCls}>My orders</NavLink>
           <NavLink to="/profile" className={navCls}>Profile</NavLink>
         </>

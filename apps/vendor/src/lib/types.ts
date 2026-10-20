@@ -86,6 +86,7 @@ export type VendorOrder = {
   payment_method: 'cod' | 'razorpay';
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   cancel_reason: string | null;
+  is_tiffin?: boolean;
   items: { name: string; qty: number; unit_price: number }[];
   created_at: string;
   customer: { name: string; phone: string | null; whatsapp_digits: string };
@@ -95,4 +96,38 @@ export type OrdersResponse = {
   date: string;
   orders: VendorOrder[];
   summary: { offering_id: number; slot: Slot; dish_name: string; sold: number; total: number }[];
+};
+
+export type Plan = {
+  id: number;
+  name: string;
+  description: string | null;
+  slot: Slot;
+  days_of_week: number[];
+  /** paise */
+  price_per_week: number;
+  price_per_meal: number;
+  diet: Diet;
+  active: boolean;
+  cutoff_hours_before: number;
+  subscriber_count: number;
+};
+
+export type Subscriber = {
+  id: number;
+  status: 'active' | 'paused' | 'cancelled' | 'finished';
+  customer: { name: string; phone: string | null; whatsapp_digits: string };
+  plan: { id: number; name: string; slot: Slot };
+  fulfilment: 'pickup' | 'delivery';
+  delivery_address: string | null;
+  start_date: string;
+  end_date: string;
+  paused_until: string | null;
+  next_meal_date: string | null;
+  skips_upcoming: string[];
+};
+
+export type SubscribersResponse = {
+  subscribers: Subscriber[];
+  plan_counts: { plan_id: number; subscribers: number; today: number; tomorrow: number }[];
 };

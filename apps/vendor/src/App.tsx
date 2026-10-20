@@ -4,16 +4,17 @@ import { AdminLayout } from './components/admin/AdminLayout';
 import AdminLogin from './pages/AdminLogin';
 import AdminAudit from './pages/admin/Audit';
 import AdminDashboard from './pages/admin/Dashboard';
-import AdminPlaceholder from './pages/admin/AdminPlaceholder';
+import AdminComplaints from './pages/admin/Complaints';
+import AdminOrders from './pages/admin/Orders';
 import AdminFssai from './pages/admin/Fssai';
 import AdminVendorDetail from './pages/admin/VendorDetail';
 import AdminVendors from './pages/admin/Vendors';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
-import Placeholder from './pages/Placeholder';
 import Delivery from './pages/vendor/Delivery';
 import Menu from './pages/vendor/Menu';
 import Orders from './pages/vendor/Orders';
+import Plans from './pages/vendor/Plans';
 import { VendorEntry } from './pages/vendor/Home';
 import Onboarding from './pages/vendor/Onboarding';
 import Profile from './pages/vendor/Profile';
@@ -43,7 +44,7 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/menu" element={<Menu />} />
-        <Route path="/plans" element={<Placeholder titleKey="plans" />} />
+        <Route path="/plans" element={<Plans />} />
       </Route>
 
       <Route path="/admin/login" element={<AdminLogin />} />
@@ -52,8 +53,8 @@ export default function App() {
         <Route path="vendors" element={<AdminVendors />} />
         <Route path="vendors/:id" element={<AdminVendorDetail />} />
         <Route path="fssai" element={<AdminFssai />} />
-        <Route path="orders" element={<AdminPlaceholder title="Orders" />} />
-        <Route path="complaints" element={<AdminPlaceholder title="Complaints" />} />
+        <Route path="orders" element={<AdminOrders />} />
+        <Route path="complaints" element={<AdminComplaints />} />
         <Route path="audit" element={<AdminAudit />} />
       </Route>
       <Route path="/home" element={<Navigate to="/" replace />} />

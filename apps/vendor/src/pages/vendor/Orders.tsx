@@ -145,7 +145,8 @@ function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () =
     <article className={cx('rounded-3xl border-2 bg-white p-4 shadow-soft', o.status === 'placed' ? 'border-terracotta-300' : 'border-cream-200', !isActive(o) && 'opacity-80')}>
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate text-2xl font-bold leading-tight">{o.customer.name || o.customer.phone}</h3>
+          <h3 className="truncate text-2xl font-bold leading-tight">{o.customer.name || o.customer.phone}
+            {o.is_tiffin && <Badge tone="turmeric" className="ml-2 px-3 py-1 align-middle text-sm">🍱 <Bi k="tiffinBadge" /></Badge>}</h3>
           <p className="text-sm text-ink-muted">#{o.id} · {clockTime(o.created_at)}</p>
         </div>
         <Badge tone={st.tone} className="px-3 py-1 text-sm"><Bi k={st.k} /></Badge>

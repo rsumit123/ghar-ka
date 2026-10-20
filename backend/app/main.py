@@ -6,7 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
-from app.routers import admin, auth, customer, geo, menu, public, vendor, vendor_orders
+from app.routers import (
+    admin, auth, customer, feedback, geo, menu, public, subscriptions, vendor, vendor_orders, vendor_plans,
+)
 
 API_PREFIX = "/api/v1"
 
@@ -18,7 +20,10 @@ ROUTERS: list[APIRouter] = [
     vendor.router,
     menu.router,
     vendor_orders.router,
+    vendor_plans.router,
     customer.router,
+    subscriptions.router,
+    feedback.router,
     admin.router,
 ]
 

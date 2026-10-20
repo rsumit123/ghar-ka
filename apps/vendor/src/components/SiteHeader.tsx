@@ -15,6 +15,7 @@ export function SiteHeader() {
         <>
           <NavLink to="/orders" className={navCls}><Bi k="orders" /></NavLink>
           <NavLink to="/menu" className={navCls}><Bi k="menu" /></NavLink>
+          <NavLink to="/plans" className={navCls}><Bi k="plans" only="en" /></NavLink>
         </>
       ) : null}
       actions={

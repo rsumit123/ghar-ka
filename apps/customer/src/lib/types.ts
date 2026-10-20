@@ -95,7 +95,32 @@ export type OrderData = {
   created_at: string;
   updated_at: string;
   can_cancel: boolean;
+  is_tiffin: boolean;
+  subscription_id: number | null;
+  can_review: boolean;
+  review: { rating: number; text: string; created_at: string } | null;
   vendor: { id: number; display_name: string; whatsapp_digits: string; pickup_address: string | null };
 };
 
 export type Locality = { id: number; name: string; city: string; pincode: string; lat: number; lng: number };
+
+export type SubStatus = 'active' | 'paused' | 'cancelled' | 'finished';
+export type MealState = 'open' | 'skipped' | 'paused' | 'locked';
+export type Meal = { date: string; state: MealState; cutoff_at: string; order_id: number | null; order_status: OrderStatus | null };
+export type Subscription = {
+  id: number;
+  status: SubStatus;
+  start_date: string;
+  end_date: string;
+  weeks: number;
+  paused_until: string | null;
+  fulfilment: Fulfilment;
+  delivery_address: string | null;
+  price_per_meal: number;
+  next_meal_date: string | null;
+  plan: { id: number; name: string; slot: Slot; days_of_week: number[]; price_per_week: number; diet: Diet; active: boolean };
+  vendor: { id: number; display_name: string; whatsapp_digits: string };
+  upcoming: Meal[];
+};
+
+export type Complaint = { id: number; order_id: number | null; vendor_id: number; vendor_name: string | null; text: string; status: 'open' | 'resolved'; created_at: string };

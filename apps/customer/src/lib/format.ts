@@ -61,3 +61,15 @@ export function haversineKm(a: { lat: number; lng: number }, b: { lat: number; l
 }
 
 export const waLink = (digits: string, text: string) => `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+
+export const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+/** Monday = 0, like the API. */
+export const weekdayIndex = (iso: string) => (dateOf(iso).getUTCDay() + 6) % 7;
+export const dateMedium = (iso: string) => fmt(iso, { day: 'numeric', month: 'short', year: 'numeric' });
+/** "Mon–Fri", "Mon, Wed, Fri" */
+export function daysText(days: number[]): string {
+  const d = [...days].sort((a, b) => a - b);
+  if (d.length === 7) return 'Every day';
+  const run = d.length > 2 && d.every((x, i) => i === 0 || x === d[i - 1] + 1);
+  return run ? `${DAY_NAMES[d[0]]}–${DAY_NAMES[d[d.length - 1]]}` : d.map((x) => DAY_NAMES[x]).join(', ');
+}

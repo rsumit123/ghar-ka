@@ -26,6 +26,16 @@ def create_admin(email: str, password: str, name: str = "Admin") -> str:
     return "created" if created else "password updated"
 
 
+def materialize(days_ahead: int = 1) -> int:
+    from datetime import timedelta
+
+    from app.services import clock
+    from app.services.subscriptions import materialize_subscription_orders
+
+    with SessionLocal() as db:
+        return materialize_subscription_orders(db, clock.local_today() + timedelta(days=days_ahead))
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="app.cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -33,9 +43,13 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--email", required=True)
     p.add_argument("--password", required=True)
     p.add_argument("--name", default="Admin")
+    m = sub.add_parser("materialize", help="create orders for tiffin subscription meals whose order-by time has passed")
+    m.add_argument("--days-ahead", type=int, default=1, help="include meals up to this many days from today (default 1)")
     args = parser.parse_args(argv)
     if args.cmd == "create-admin":
         print(f"Admin {args.email}: {create_admin(args.email, args.password, args.name)}")
+    elif args.cmd == "materialize":
+        print(f"Created {materialize(args.days_ahead)} subscription order(s)")
 
 
 if __name__ == "__main__":

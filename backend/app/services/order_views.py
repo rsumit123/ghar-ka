@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Fulfilment, MenuOffering, Order, OrderStatus, User, Vendor
+from app.models import Fulfilment, MenuOffering, Order, OrderStatus, Review, User, Vendor
 from app.services.phone import digits_only
 
 
@@ -31,6 +31,7 @@ def _base(o: Order, cutoff: datetime | None) -> dict:
         "id": o.id, "status": o.status, "date": o.date, "slot": o.slot, "fulfilment": o.fulfilment,
         "delivery_address": o.delivery_address, "lat": o.lat, "lng": o.lng, "note": o.note, "total": o.total,
         "payment_method": o.payment_method, "payment_status": o.payment_status, "cancel_reason": o.cancel_reason,
+        "subscription_id": o.subscription_id, "is_tiffin": o.subscription_id is not None,
         "items": _items(o), "cutoff_at": cutoff, "created_at": o.created_at, "updated_at": o.updated_at,
     }
 
@@ -38,10 +39,14 @@ def _base(o: Order, cutoff: datetime | None) -> dict:
 def customer_orders_out(db: Session, orders: list[Order], now: datetime) -> list[dict]:
     cut = _cutoffs(db, orders)
     vendors = {v.id: v for v in db.scalars(select(Vendor).where(Vendor.id.in_({o.vendor_id for o in orders})))} if orders else {}
+    reviews = {r.order_id: r for r in db.scalars(select(Review).where(Review.order_id.in_([o.id for o in orders])))} if orders else {}
     result = []
     for o in orders:
         v = vendors[o.vendor_id]
         d = _base(o, cut.get(o.id))
+        r = reviews.get(o.id)
+        d["review"] = {"rating": r.rating, "text": r.text, "created_at": r.created_at} if r else None
+        d["can_review"] = o.status == OrderStatus.completed and r is None
         d["can_cancel"] = o.status == OrderStatus.placed and cut.get(o.id) is not None and cut[o.id] > now
         d["vendor"] = {
             "id": v.id, "display_name": v.display_name, "whatsapp_digits": digits_only(v.whatsapp_phone),

@@ -42,7 +42,12 @@ export type AdminDashboardData = {
   fssai_expiring_60d: number;
   orders_today: number;
   orders_this_week: number;
-  repeat_customer_rate: number;
+  repeat_customer_rate: number | null;
+  repeat_customers: number;
+  customers_served: number;
+  active_subscriptions: number;
+  open_complaints: number;
+  orders_per_day: { date: string; count: number }[];
 };
 
 export type AuditItem = {
@@ -61,4 +66,46 @@ export type FssaiRow = FssaiInfo & {
   review_status: ReviewStatus;
   is_live: boolean;
   days_left: number | null;
+};
+
+export type AdminOrder = {
+  id: number;
+  date: string;
+  slot: 'lunch' | 'dinner';
+  status: 'placed' | 'accepted' | 'ready' | 'completed' | 'cancelled';
+  fulfilment: 'pickup' | 'delivery';
+  total: number;
+  payment_method: string;
+  payment_status: string;
+  is_tiffin: boolean;
+  created_at: string;
+  cancel_reason: string | null;
+  customer: { id: number; name: string; phone: string | null };
+  vendor: { id: number; name: string };
+  items: { name: string; qty: number; unit_price: number }[];
+};
+export type AdminOrdersPage = {
+  total: number;
+  page: number;
+  page_size: number;
+  summary: Record<AdminOrder['status'], number>;
+  items: AdminOrder[];
+};
+
+export type AdminComplaint = {
+  id: number;
+  text: string;
+  status: 'open' | 'resolved';
+  admin_note: string | null;
+  created_at: string;
+  customer: { id: number; name: string; phone: string | null };
+  vendor: { id: number; name: string };
+  order: { id: number; date: string; slot: 'lunch' | 'dinner'; status: string; total: number } | null;
+};
+export type AdminComplaintsPage = {
+  total: number;
+  page: number;
+  page_size: number;
+  summary: { open: number; resolved: number };
+  items: AdminComplaint[];
 };

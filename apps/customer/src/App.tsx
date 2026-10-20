@@ -7,6 +7,7 @@ import NotFound from './pages/NotFound';
 import OrderDetail from './pages/OrderDetail';
 import Orders from './pages/Orders';
 import Profile from './pages/Profile';
+import Tiffins from './pages/Tiffins';
 import Vendor from './pages/Vendor';
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/orders" element={<Orders />} />
       <Route path="/orders/:id" element={<OrderDetail />} />
+      <Route path="/tiffins" element={<Tiffins />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/login" element={<Login />} />
       <Route path="*" element={<NotFound />} />

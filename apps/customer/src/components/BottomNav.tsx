@@ -5,6 +5,7 @@ import { cartCount, useCart } from '../lib/cart';
 const items = [
   { to: '/', label: 'Cooks', icon: '🍲', end: true },
   { to: '/cart', label: 'Cart', icon: '🧺' },
+  { to: '/tiffins', label: 'Tiffins', icon: '🍱' },
   { to: '/orders', label: 'Orders', icon: '🧾' },
   { to: '/profile', label: 'Me', icon: '🙂' },
 ];
@@ -23,7 +24,7 @@ export function BottomNav() {
               <span className="text-xl" aria-hidden>{i.icon}</span>
               {i.label}
               {i.to === '/cart' && n > 0 && (
-                <span className="absolute right-[28%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-terracotta-500 px-1 text-[10px] font-bold text-white">{n}</span>
+                <span className="absolute right-[24%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-terracotta-500 px-1 text-[10px] font-bold text-white">{n}</span>
               )}
             </NavLink>
           </li>

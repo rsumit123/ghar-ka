@@ -1,4 +1,5 @@
 """Customer API: profile update and orders."""
+from datetime import timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,6 +10,7 @@ from app.models import Order, Role, User
 from app.schemas.auth import UserOut
 from app.schemas.order import CancelIn, OrderIn, ProfileUpdateIn
 from app.services import clock, order_views, orders
+from app.services.subscriptions import materialize_subscription_orders
 
 router = APIRouter(tags=["customer"])
 CustomerUser = Annotated[User, Depends(require_role(Role.customer))]
@@ -47,6 +49,7 @@ def create_order(body: OrderIn, user: CustomerUser, db: DbDep):
 
 @router.get("/orders")
 def my_orders(user: CustomerUser, db: DbDep):
+    materialize_subscription_orders(db, clock.local_today() + timedelta(days=1), customer_id=user.id)
     rows = db.scalars(select(Order).where(Order.customer_id == user.id).order_by(Order.created_at.desc(), Order.id.desc()).limit(100)).all()
     return order_views.customer_orders_out(db, list(rows), clock.now())
 

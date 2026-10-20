@@ -1,6 +1,8 @@
 import { ApiError, Badge, Button, Card, Modal, RequireRole, Spinner, TiffinIllustration, api, brand, cx } from '@gharka/ui';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { ReportSheet } from '../components/ReportSheet';
+import { ReviewSection } from '../components/ReviewForm';
 import { Shell } from '../components/Shell';
 import { cutoffText, dateLong, dateTimeShort, rupees, slotLabel, waLink } from '../lib/format';
 import type { OrderData } from '../lib/types';
@@ -25,6 +27,7 @@ function Detail() {
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [reporting, setReporting] = useState(false);
 
   const load = useCallback(() => {
     api.get<OrderData>(`/orders/${id}`).then(setO).catch((e) => setError(e instanceof ApiError ? e.detail : 'Could not load this order'));
@@ -67,7 +70,7 @@ function Detail() {
       )}
       <div className="flex items-start justify-between gap-3">
         <div>
-          {!justPlaced && <h1 className="font-serif text-2xl font-bold">{o.vendor.display_name}</h1>}
+          {!justPlaced && <h1 className="font-serif text-2xl font-bold">{o.vendor.display_name} {o.is_tiffin && <Badge tone="turmeric" className="ml-1 align-middle font-sans text-xs leading-5">Tiffin</Badge>}</h1>}
           <p className="text-ink-soft">Order #{o.id} · {slotLabel(o.slot)}, {dateLong(o.date)}</p>
         </div>
         <Badge tone={STATUS_TONE[o.status]}>{STATUS_TEXT[o.status]}</Badge>
@@ -114,6 +117,8 @@ function Detail() {
         <p className="text-sm text-ink-muted">Placed {dateTimeShort(o.created_at)}</p>
       </Card>
 
+      {o.status === 'completed' && <ReviewSection order={o} onDone={setO} />}
+
       <div className="mt-5 space-y-2">
         {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-leaf-500 bg-white/70 font-semibold text-leaf-700">💬 Message {o.vendor.display_name}</a>}
         {o.can_cancel && o.cutoff_at && (
@@ -124,8 +129,10 @@ function Detail() {
         )}
         {!o.can_cancel && o.status === 'placed' && <p className="text-center text-sm text-ink-muted">The order-by time has passed, so this order can&apos;t be cancelled. Message the cook if something changed.</p>}
         {o.status === 'accepted' && <p className="text-center text-sm text-ink-muted">The cook has started on your order. To change it, message her.</p>}
+        <Button variant="ghost" block onClick={() => setReporting(true)}>⚠ Report a problem</Button>
         <Link to="/orders" className="block"><Button variant="ghost" block>All my orders</Button></Link>
       </div>
+      <ReportSheet open={reporting} onClose={() => setReporting(false)} vendor={{ id: o.vendor.id, name: o.vendor.display_name }} orderId={o.id} />
 
       <Modal open={asking} onClose={() => setAsking(false)} title="Cancel this order?">
         <p className="text-ink-soft">The dishes go back on the menu for others.</p>

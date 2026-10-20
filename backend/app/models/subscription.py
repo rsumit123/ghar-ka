@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import JSON, Boolean, Date, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Date, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base, UTCDateTime, str_enum, utcnow
@@ -37,6 +37,8 @@ class Subscription(Base):
     paused_until: Mapped[date | None] = mapped_column(Date)
     fulfilment: Mapped[Fulfilment] = mapped_column(str_enum(Fulfilment))
     delivery_address: Mapped[str | None] = mapped_column(Text)
+    lat: Mapped[float | None] = mapped_column(Float)
+    lng: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
 
