@@ -24,9 +24,9 @@ def otp_request(body: OtpRequest, db: DbDep, sms: Annotated[SmsProvider, Depends
 
 
 @router.post("/otp/verify", response_model=UserOut)
-def otp_verify(body: OtpVerify, response: Response, db: DbDep):
+def otp_verify(body: OtpVerify, response: Response, db: DbDep, sms: Annotated[SmsProvider, Depends(get_sms_provider)]):
     try:
-        user = otp_service.verify_otp(db, body.phone, body.role, body.code)
+        user = otp_service.verify_otp(db, body.phone, body.role, body.code, sms)
     except otp_service.OtpError as e:
         raise HTTPException(e.status_code, e.detail) from None
     set_session_cookie(response, create_session(db, user))

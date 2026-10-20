@@ -9,7 +9,7 @@ from app.config import get_settings
 from app.db import utcnow
 from app.models import OtpCode, Role, User
 from app.services.security import constant_time_eq, sha256_hex
-from app.services.sms import SmsProvider
+from app.services.sms import SmsError, SmsProvider
 
 
 class OtpError(Exception):
@@ -44,10 +44,16 @@ def request_otp(db: Session, sms: SmsProvider, phone: str, role: Role) -> None:
         expires_at=now + timedelta(minutes=s.OTP_TTL_MINUTES),
     ))
     db.commit()
-    sms.send(phone, f"{s.BRAND_NAME}: your login code is {code}. Valid for {s.OTP_TTL_MINUTES} minutes.")
+    try:
+        if getattr(sms, "verifies_codes", False):
+            sms.start(phone)
+        else:
+            sms.send(phone, f"{s.BRAND_NAME}: your login code is {code}. Valid for {s.OTP_TTL_MINUTES} minutes.")
+    except SmsError:
+        raise OtpError("Could not send the code. Please try again in a minute.", 502) from None
 
 
-def verify_otp(db: Session, phone: str, role: Role, code: str) -> User:
+def verify_otp(db: Session, phone: str, role: Role, code: str, sms: SmsProvider | None = None) -> User:
     s = get_settings()
     now = utcnow()
     otp = db.execute(
@@ -61,7 +67,15 @@ def verify_otp(db: Session, phone: str, role: Role, code: str) -> User:
     if otp.attempts >= s.OTP_MAX_ATTEMPTS:
         raise OtpError("Too many wrong attempts. Please request a new code.", 429)
     otp.attempts += 1
-    if not constant_time_eq(otp.code_hash, _hash(phone, role, code.strip())):
+    if sms is not None and getattr(sms, "verifies_codes", False):
+        try:
+            ok = sms.check(phone, code.strip())
+        except SmsError:
+            db.commit()
+            raise OtpError("Could not check the code. Please try again in a minute.", 502) from None
+    else:
+        ok = constant_time_eq(otp.code_hash, _hash(phone, role, code.strip()))
+    if not ok:
         db.commit()  # persist the attempt count
         raise OtpError("Wrong code. Please try again.")
     otp.consumed_at = now

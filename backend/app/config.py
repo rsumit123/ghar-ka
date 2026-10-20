@@ -22,7 +22,10 @@ class Settings(BaseSettings):
     SESSION_DAYS: int = 30
 
     # --- SMS / OTP ---
-    SMS_PROVIDER: str = "console"
+    SMS_PROVIDER: str = "console"  # console | twilio_verify
+    TWILIO_API_KEY_SID: str = ""
+    TWILIO_API_KEY_SECRET: str = ""
+    TWILIO_VERIFY_SERVICE_SID: str = ""
     OTP_LENGTH: int = 6
     OTP_TTL_MINUTES: int = 5
     OTP_MAX_ATTEMPTS: int = 5
