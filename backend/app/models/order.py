@@ -31,6 +31,7 @@ class Order(Base):
     razorpay_order_id: Mapped[str | None] = mapped_column(String(64), index=True)
     subscription_id: Mapped[int | None] = mapped_column(ForeignKey("subscriptions.id"))
     cancel_reason: Mapped[str | None] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(String(300))  # customer's note to the cook
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
 

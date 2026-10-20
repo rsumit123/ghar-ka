@@ -29,3 +29,8 @@ def normalize_phone(raw: str, default_cc: str | None = None) -> str:
     if digits.startswith("91") and len(digits) == 12 and digits[2] not in "6789":
         raise InvalidPhone("Enter a valid Indian mobile number")
     return "+" + digits
+
+
+def digits_only(phone: str | None) -> str:
+    """Digits of an E.164 number without '+', as used in wa.me links."""
+    return re.sub(r"\D", "", phone or "")

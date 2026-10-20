@@ -1,4 +1,5 @@
-import { ApiError, Bi, Button, Card, Input, LocationPicker, Page, TiffinIllustration, api, cx, t, type DictKey } from '@gharka/ui';
+import { ApiError, Bi, Button, Card, Input, Page, TiffinIllustration, api, cx, t, type DictKey } from '@gharka/ui';
+import { LocationPicker } from '@gharka/ui/maps';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DocCards } from '../../components/vendor/DocCards';

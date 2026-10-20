@@ -8,6 +8,8 @@ export const brand = {
   apiUrl: (env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, ''),
   customerUrl: env.VITE_CUSTOMER_URL || 'http://localhost:5173',
   vendorUrl: env.VITE_VENDOR_URL || 'http://localhost:5174',
+  /** IANA zone used to format dates/times (mirror of the backend APP_TIMEZONE). */
+  timezone: env.VITE_TIMEZONE || 'Asia/Kolkata',
   razorpayEnabled: env.VITE_RAZORPAY_ENABLED === 'true',
   map: {
     tileUrl: env.VITE_MAP_TILE_URL || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',

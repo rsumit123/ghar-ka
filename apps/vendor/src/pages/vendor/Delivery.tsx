@@ -1,4 +1,5 @@
-import { ApiError, Bi, Button, Card, MapView, Page, Switch, api } from '@gharka/ui';
+import { ApiError, Bi, Button, Card, Page, Switch, api } from '@gharka/ui';
+import { MapView } from '@gharka/ui/maps';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SiteHeader } from '../../components/SiteHeader';

@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     LUNCH_START: str = "12:00"
     DINNER_START: str = "19:30"
 
+    # --- discovery ---
+    # Public listing shows vendors in the customer's pincode/locality, or within max(vendor delivery radius, this) km.
+    PUBLIC_SEARCH_RADIUS_KM: float = 5.0
+
     # --- payments ---
     RAZORPAY_ENABLED: bool = False
     RAZORPAY_KEY_ID: str = ""

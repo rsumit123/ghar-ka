@@ -1,4 +1,5 @@
-import { ApiError, Badge, Button, Card, Input, MapView, Modal, Spinner, Switch, api, brand, mediaUrl, qs } from '@gharka/ui';
+import { ApiError, Badge, Button, Card, Input, Modal, Spinner, Switch, api, brand, mediaUrl, qs } from '@gharka/ui';
+import { MapView } from '@gharka/ui/maps';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Field, FssaiBadge, LiveBadge, ReviewBadge, selectCls, textareaCls } from '../../components/admin/bits';

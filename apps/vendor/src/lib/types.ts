@@ -49,3 +49,50 @@ export type VendorMe = {
 export type Locality = { id: number; name: string; city: string; pincode: string; lat: number; lng: number };
 
 export const DOC_KINDS = ['id_proof', 'address_proof', 'passport_photo'] as const;
+
+export type Slot = 'lunch' | 'dinner';
+export type Diet = 'veg' | 'egg' | 'nonveg';
+export type OrderStatus = 'placed' | 'accepted' | 'ready' | 'completed' | 'cancelled';
+export type CutoffPreset = '1h' | '2h' | '3h' | 'night_before_9pm' | 'morning_10am';
+
+export type Offering = {
+  id: number;
+  date: string;
+  slot: Slot;
+  dish_name: string;
+  description: string | null;
+  photo: string | null;
+  /** paise */
+  price: number;
+  diet: Diet;
+  portions_total: number;
+  portions_sold: number;
+  portions_left: number;
+  cutoff_at: string;
+  is_open: boolean;
+};
+
+export type VendorOrder = {
+  id: number;
+  status: OrderStatus;
+  date: string;
+  slot: Slot;
+  fulfilment: 'pickup' | 'delivery';
+  delivery_address: string | null;
+  lat: number | null;
+  lng: number | null;
+  note: string | null;
+  total: number;
+  payment_method: 'cod' | 'razorpay';
+  payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
+  cancel_reason: string | null;
+  items: { name: string; qty: number; unit_price: number }[];
+  created_at: string;
+  customer: { name: string; phone: string | null; whatsapp_digits: string };
+};
+
+export type OrdersResponse = {
+  date: string;
+  orders: VendorOrder[];
+  summary: { offering_id: number; slot: Slot; dish_name: string; sold: number; total: number }[];
+};

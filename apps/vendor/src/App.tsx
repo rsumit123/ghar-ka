@@ -12,6 +12,8 @@ import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import Placeholder from './pages/Placeholder';
 import Delivery from './pages/vendor/Delivery';
+import Menu from './pages/vendor/Menu';
+import Orders from './pages/vendor/Orders';
 import { VendorEntry } from './pages/vendor/Home';
 import Onboarding from './pages/vendor/Onboarding';
 import Profile from './pages/vendor/Profile';
@@ -39,8 +41,8 @@ export default function App() {
         <Route path="/status" element={<Status />} />
         <Route path="/delivery" element={<Delivery />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/orders" element={<Placeholder titleKey="todayOrders" />} />
-        <Route path="/menu" element={<Placeholder titleKey="menu" />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/menu" element={<Menu />} />
         <Route path="/plans" element={<Placeholder titleKey="plans" />} />
       </Route>
 
