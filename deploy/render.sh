@@ -28,7 +28,8 @@ PY
 }
 
 OUT="$HERE/out"; rm -rf "$OUT"; mkdir -p "$OUT/nginx" "$OUT/systemd"
-for t in customer vendor api; do
+SITES="api"; [ "${SERVE_FRONTENDS:-yes}" = "yes" ] && SITES="customer vendor api"
+for t in $SITES; do
   subst "$HERE/nginx/$t.conf.in" > "$OUT/nginx/$APP_NAME-$t.conf"
 done
 for t in api.service materialize.service materialize.timer backup.service backup.timer; do
@@ -46,5 +47,9 @@ if [ "${1:-}" = "--install" ]; then
   systemctl daemon-reload
   nginx -t && systemctl reload nginx
   systemctl enable --now "$APP_NAME-api.service" "$APP_NAME-materialize.timer" "$APP_NAME-backup.timer"
-  echo "Installed. Next: certbot --nginx -d $CUSTOMER_DOMAIN -d $VENDOR_DOMAIN -d $API_DOMAIN"
+  if [ "${SERVE_FRONTENDS:-yes}" = "yes" ]; then
+    echo "Installed. Next: certbot --nginx -d $CUSTOMER_DOMAIN -d $VENDOR_DOMAIN -d $API_DOMAIN"
+  else
+    echo "Installed (API only). Next: certbot --nginx -d $API_DOMAIN"
+  fi
 fi

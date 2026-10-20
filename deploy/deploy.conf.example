@@ -7,6 +7,9 @@ BRAND_NAME=gharka                        # shown in the sites' <title>; must mat
 CUSTOMER_DOMAIN=gharka.skdev.one
 VENDOR_DOMAIN=vendor-gharka.skdev.one    # cooks' app and /admin
 API_DOMAIN=api-gharka.skdev.one          # API + /media
+# yes: nginx on this server also serves the two built sites. no: the sites are hosted elsewhere (e.g. Vercel) and
+# this server runs only the API, /media, timers and backups.
+SERVE_FRONTENDS=yes
 
 SERVICE_USER=gharka                      # dedicated unix user that runs the API
 BASE_DIR=/srv/gharka                     # put this on the persistent disk

@@ -4,6 +4,8 @@ A hyperlocal home-food marketplace. Households are the vendors ("cooks"); custom
 home-cooked meals for a specific date and lunch/dinner slot, or subscribe to weekly tiffin plans. One city locality at launch.
 "gharka" is a placeholder brand: see [Renaming the brand](#renaming-the-brand).
 
+**Deploying or picking up the work? Start with [`docs/HANDOFF.md`](docs/HANDOFF.md).**
+
 Product spec: [`docs/SPEC.md`](docs/SPEC.md). Build/conventions notes: [`docs/NOTES.md`](docs/NOTES.md).
 
 ## Architecture
@@ -182,7 +184,8 @@ SQLite and the uploads live on that disk, so the server can be rebuilt from a ba
 5. **Frontend env** (used at build time): `cp apps/customer/.env.example apps/customer/.env.production` and the same for `apps/vendor`, then set
    `VITE_API_URL=https://api-gharka.skdev.one`, `VITE_CUSTOMER_URL=https://gharka.skdev.one`, `VITE_VENDOR_URL=https://vendor-gharka.skdev.one`
    (and the tile/brand settings you want).
-6. **Deploy config**: `cd /srv/gharka/app/deploy && cp deploy.conf.example deploy.conf` and edit domains/paths.
+6. **Deploy config**: `cd /srv/gharka/app/deploy && cp deploy.conf.example deploy.conf` and edit domains/paths. If the two sites are hosted elsewhere
+   (e.g. Vercel), set `SERVE_FRONTENDS=no`: only the API nginx site is installed, the frontend build is skipped, and certbot needs only the API domain.
 7. **Initial admin** (after step 8 has built the app and created the database):
    `sudo -u gharka bash -c 'set -a; . /srv/gharka/backend.env; set +a; cd /srv/gharka/app/backend && .venv/bin/python -m app.cli create-admin --email you@x.com --password "..."'`.
 8. **nginx + systemd**: `sudo ./render.sh --install` renders `deploy/nginx/*.in` and `deploy/systemd/*.in` from `deploy.conf`, installs the three nginx sites,

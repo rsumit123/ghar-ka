@@ -29,6 +29,7 @@ echo "==> database migrations"
 # Load the same settings the service uses (values with spaces must be double-quoted in the env file).
 as_app bash -c "set -a; . '$ENV_FILE'; set +a; cd '$APP_DIR/backend' && .venv/bin/alembic upgrade head"
 
+if [ "${SERVE_FRONTENDS:-yes}" = "yes" ]; then
 echo "==> frontend build"
 cd "$APP_DIR"
 as_app npm ci --no-audit --no-fund
@@ -42,10 +43,13 @@ for site in customer vendor; do
   [ -d "$WWW_DIR/$site" ] && as_app mv "$WWW_DIR/$site" "$WWW_DIR/$site.old"
   as_app mv "$WWW_DIR/$site.new" "$WWW_DIR/$site"
 done
+else
+  echo "==> SERVE_FRONTENDS=no: skipping frontend build (sites are hosted elsewhere)"
+fi
 
 echo "==> restart API"
 systemctl restart "$APP_NAME-api.service"
 sleep 2
 systemctl is-active --quiet "$APP_NAME-api.service" && echo "API is running." || { journalctl -u "$APP_NAME-api.service" -n 30 --no-pager; exit 1; }
 curl -fsS "http://127.0.0.1:${API_PORT}/api/v1/localities" >/dev/null && echo "Health check OK." || echo "WARNING: health check failed"
-echo "Done. Static sites were rebuilt and are served from $WWW_DIR."
+echo "Done."
