@@ -54,7 +54,7 @@ function Body({ plan, vendor, onClose }: { plan: Plan; vendor: VendorProfile; on
     let deliveryWhy: string | null = null;
     if (vendor.delivery_radius_km <= 0) deliveryWhy = `${vendor.display_name} doesn't deliver.`;
     else if (dist !== null && dist > vendor.delivery_radius_km + 0.15)
-      deliveryWhy = `You're about ${dist.toFixed(1)} km away. She delivers within ${vendor.delivery_radius_km} km.`;
+      deliveryWhy = `You're about ${dist.toFixed(1)} km away. Delivery is within ${vendor.delivery_radius_km} km.`;
     return { dist, deliveryWhy, pickupWhy: vendor.offers_pickup ? null : `${vendor.display_name} doesn't offer pickup.` };
   }, [vendor, pos]);
 

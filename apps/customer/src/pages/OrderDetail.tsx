@@ -153,7 +153,7 @@ function Detail() {
           </>
         )}
         {!o.can_cancel && o.status === 'placed' && <p className="text-center text-sm text-ink-muted">The order-by time has passed, so this order can&apos;t be cancelled. Message the cook if something changed.</p>}
-        {o.status === 'accepted' && <p className="text-center text-sm text-ink-muted">The cook has started on your order. To change it, message her.</p>}
+        {o.status === 'accepted' && <p className="text-center text-sm text-ink-muted">The cook has started on your order. To change it, message the cook.</p>}
         <Button variant="ghost" block onClick={() => setReporting(true)}><Icon.Warn className="mr-1.5 h-5 w-5" /> Report a problem</Button>
         <Link to="/orders" className="block"><Button variant="ghost" block>All my orders</Button></Link>
       </div>

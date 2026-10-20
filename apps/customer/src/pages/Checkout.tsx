@@ -47,9 +47,9 @@ export default function Checkout() {
     if (!vendor) return null;
     const dist = pos && vendor.lat !== null && vendor.lng !== null ? haversineKm(pos, { lat: vendor.lat, lng: vendor.lng }) : null;
     let deliveryWhy: string | null = null;
-    if (vendor.delivery_radius_km <= 0) deliveryWhy = `${vendor.display_name} doesn't deliver. Pick up from her kitchen.`;
+    if (vendor.delivery_radius_km <= 0) deliveryWhy = `${vendor.display_name} doesn't deliver. Pick up from the kitchen instead.`;
     else if (dist !== null && dist > vendor.delivery_radius_km + 0.15)
-      deliveryWhy = `You're about ${dist.toFixed(1)} km away. She delivers within ${vendor.delivery_radius_km} km.`;
+      deliveryWhy = `You're about ${dist.toFixed(1)} km away. Delivery is within ${vendor.delivery_radius_km} km.`;
     return { dist, deliveryWhy, pickupWhy: vendor.offers_pickup ? null : `${vendor.display_name} doesn't offer pickup.` };
   }, [vendor, pos]);
 
@@ -149,7 +149,7 @@ export default function Checkout() {
               <p className="text-sm font-semibold text-ink-soft">Pin the exact spot</p>
               <LocationPicker value={pos} onChange={setPos} height={260}
                 fallbackCenter={vendor.lat !== null && vendor.lng !== null ? { lat: vendor.lat, lng: vendor.lng } : undefined} />
-              {pos && options.dist !== null && !options.deliveryWhy && <p className="text-sm font-medium text-leaf-700">✓ About {options.dist.toFixed(1)} km from {vendor.display_name}. She can deliver here.</p>}
+              {pos && options.dist !== null && !options.deliveryWhy && <p className="text-sm font-medium text-leaf-700">✓ About {options.dist.toFixed(1)} km from {vendor.display_name}. Delivery is available here.</p>}
               {options.deliveryWhy && <p className="text-sm font-medium text-terracotta-600" role="alert">{options.deliveryWhy}</p>}
             </section>
           )}

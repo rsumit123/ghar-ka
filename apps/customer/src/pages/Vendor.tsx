@@ -92,7 +92,7 @@ export default function Vendor() {
 
       {v.lat !== null && v.lng !== null && (
         <section className="mt-8">
-          <h2 className="font-serif text-2xl font-bold">Where she cooks</h2>
+          <h2 className="font-serif text-2xl font-bold">Where the kitchen is</h2>
           <p className="mb-2 text-sm text-ink-muted">
             {v.locality_name ?? 'Nearby'}{v.distance_km !== null ? ` · ${v.distance_km} km from you` : ''}. The pin is approximate; you get the exact address after your order is accepted.
           </p>
@@ -194,7 +194,7 @@ function MenuSection({ v, group, date, slot }: { v: VendorProfile; group: MenuGr
   if (!group) {
     return (
       <Card className="mt-4">
-        <EmptyState title={`No ${slotLabel(slot).toLowerCase()} menu for ${dateLong(date)}`} hint="Try another day (days with a green dot have a menu), or message the cook to ask what she can make." />
+        <EmptyState title={`No ${slotLabel(slot).toLowerCase()} menu for ${dateLong(date)}`} hint="Try another day (days with a green dot have a menu), or message the cook to ask what they can make." />
       </Card>
     );
   }
