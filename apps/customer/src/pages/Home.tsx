@@ -89,13 +89,21 @@ function Vendors({ place, date, slot, diet, view }: { place: Place; date: string
   if (list === null) return <div className="mt-12 flex justify-center"><Spinner className="h-8 w-8" /></div>;
 
   if (list.length === 0) {
+    const here = place.lat !== undefined && place.lng !== undefined ? { lat: place.lat, lng: place.lng } : undefined;
     return (
+      <>
+        {view === 'map' && (
+          <div className="mt-5">
+            <MapView center={here} markers={here ? [{ id: 'you', ...here, label: 'You are here' }] : []} height={260} />
+          </div>
+        )}
       <Card className="mt-6">
         <EmptyState
           title="No cooks here yet"
           hint={`We couldn't find a cook ${diet !== 'all' ? 'with that food ' : ''}near ${place.name}. New kitchens open every week, so check back soon or try another day.`}
         />
       </Card>
+      </>
     );
   }
 
