@@ -1,0 +1,19 @@
+{
+  "name": "gharka",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "setup": "cd backend && uv sync && uv run alembic upgrade head",
+    "dev": "concurrently -k -n api,customer,vendor -c yellow,green,magenta \"npm:dev:api\" \"npm:dev:customer\" \"npm:dev:vendor\"",
+    "dev:api": "sh backend/scripts/dev.sh",
+    "dev:customer": "npm run dev -w @gharka/customer",
+    "dev:vendor": "npm run dev -w @gharka/vendor",
+    "build": "npm run build -w @gharka/customer -w @gharka/vendor",
+    "typecheck": "npm run typecheck -w @gharka/ui",
+    "test": "cd backend && uv run pytest"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

@@ -1,0 +1,18 @@
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-cream font-sans text-ink antialiased;
+    /* subtle paper: faint fibres + warm vignette, CSS only */
+    background-image:
+      radial-gradient(rgba(43, 33, 24, 0.035) 1px, transparent 1px),
+      radial-gradient(rgba(194, 96, 62, 0.025) 1px, transparent 1px),
+      radial-gradient(ellipse at 50% -10%, rgba(227, 160, 8, 0.10), transparent 60%);
+    background-size: 22px 22px, 37px 37px, 100% 100%;
+    background-position: 0 0, 11px 17px, 0 0;
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4 { @apply font-serif tracking-tight; }
+  :focus-visible { @apply outline-none ring-2 ring-turmeric-500 ring-offset-2 ring-offset-cream; }
+}
+/* leaflet container should not leak z-index over sticky headers */
+.leaflet-container { font-family: inherit; z-index: 0; border-radius: inherit; }

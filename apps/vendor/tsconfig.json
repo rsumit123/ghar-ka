@@ -1,0 +1,4 @@
+{
+  "extends": "@gharka/ui/tsconfig.base.json",
+  "include": ["src", "vite.config.ts"]
+}
