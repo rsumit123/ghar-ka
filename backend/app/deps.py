@@ -26,7 +26,13 @@ def get_session_token(request: Request) -> str | None:
 
 def get_optional_user(request: Request, db: DbDep) -> User | None:
     token = get_session_token(request)
-    return get_user_for_token(db, token) if token else None
+    user = get_user_for_token(db, token) if token else None
+    # A site's cookie only counts for that site's role: e.g. an admin login left in the cook cookie (from before admin
+    # had its own) reads as logged out on the cook pages, so they show the login page instead of "no access".
+    app = app_of(request)
+    if user is not None and app is not None and user.role.value != app:
+        return None
+    return user
 
 
 def get_current_user(user: Annotated[User | None, Depends(get_optional_user)]) -> User:

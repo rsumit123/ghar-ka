@@ -57,3 +57,12 @@ def test_unknown_app_header_uses_plain_cookie(client, shared_mode):
                     json={"phone": PHONE, "role": "customer", "password": "let-me-in"})
     assert r.headers["set-cookie"].startswith(f"{get_settings().COOKIE_NAME}=")
     assert me(client).json()["role"] == "customer"
+
+
+
+def test_wrong_role_in_a_sites_cookie_reads_as_logged_out(client, db, make_user):
+    """An admin login left in the cook cookie (before admin had its own) must not block the cook pages."""
+    from app.services.sessions import cookie_name, create_session
+    client.cookies.set(cookie_name("vendor"), create_session(db, make_user(Role.admin)))
+    assert me(client, "vendor").status_code == 401  # -> the cook site shows its login page
+    assert client.get("/api/v1/vendor/me", headers={"X-App": "vendor"}).status_code == 401
