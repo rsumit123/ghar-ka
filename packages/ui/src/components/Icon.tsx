@@ -39,6 +39,7 @@ export const Icon = {
   Smile: make('Smile', <><circle cx="12" cy="12" r="8.5" /><path d="M8.5 14c1 1.5 2.2 2.2 3.5 2.2s2.5-.7 3.5-2.2M9 9.8v.1M15 9.8v.1" /></>),
   Doc: make('Doc', <><path d="M6 3h8l4 4v14H6V3z" /><path d="M14 3v4h4M9 12h6M9 16h6" /></>),
   Arrow: make('Arrow', <path d="M5 12h14M13 6l6 6-6 6" />),
+  Close: make('Close', <path d="M6 6l12 12M18 6L6 18" />),
   ArrowLeft: make('ArrowLeft', <path d="M19 12H5M11 6l-6 6 6 6" />),
   Refresh: make('Refresh', <><path d="M20 11a8 8 0 00-14-4M4 4v3.5h3.5" /><path d="M4 13a8 8 0 0014 4M20 20v-3.5h-3.5" /></>),
 };
