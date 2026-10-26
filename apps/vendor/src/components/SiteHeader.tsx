@@ -17,6 +17,7 @@ export function SiteHeader({ wide }: { wide?: boolean }) {
           <NavLink to="/orders" className={navCls}><Bi k="orders" /></NavLink>
           <NavLink to="/menu" className={navCls}><Bi k="menu" /></NavLink>
           <NavLink to="/plans" className={navCls}><Bi k="plans" only="en" /></NavLink>
+          <NavLink to="/delivery" className={navCls}><Bi k="delivery" only="en" /></NavLink>
         </>
       ) : null}
       actions={

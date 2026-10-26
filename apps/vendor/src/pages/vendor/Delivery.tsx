@@ -3,6 +3,7 @@ import { MapView } from '@gharka/ui/maps';
 import { useState, type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SiteHeader } from '../../components/SiteHeader';
+import { VendorTabs } from '../../components/vendor/VendorTabs';
 import type { DeliveryBy, VendorMe } from '../../lib/types';
 import { useVendor } from '../../lib/useVendor';
 
@@ -34,6 +35,7 @@ export default function Delivery() {
 
   return (
     <Page header={<SiteHeader />} narrow title={<Bi k="deliverySettings" />}>
+      <VendorTabs />
       <div className="space-y-5">
         <Switch checked={pickup} onChange={setPickup} label={<Bi k="pickupOk" />} hint={<Bi k="pickupOkHint" />} />
         <Card>

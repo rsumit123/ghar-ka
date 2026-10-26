@@ -189,3 +189,25 @@ def test_copy_yesterday_into_today_skips_passed_cutoffs(client, vend, make_offer
     make_offering(vend, y, Slot.lunch, name="Old early", cutoff=datetime(2026, 10, 19, 1, 0, tzinfo=UTC))  # 06:30 IST -> passed today
     r = client.post("/api/v1/vendor/offerings/copy", json={"from_date": str(y), "to_dates": [str(TODAY)]}).json()
     assert [o["dish_name"] for o in r["created"]] == ["Old lunch"] and r["skipped"] == 1
+
+
+def test_one_photo_shared_by_the_same_dish_on_other_days(client, db, vend, make_offering):
+    a, b = make_offering(vend, TOMORROW), make_offering(vend, TOMORROW + timedelta(days=1))
+    url = f"/api/v1/vendor/offerings/{a.id}/photo"
+    r = client.post(url, files={"file": ("a.jpg", jpeg(), "image/jpeg")}, data={"also": f"{b.id}"}, headers=H)
+    assert r.status_code == 200
+    db.expire_all()
+    first = db.get(MenuOffering, a.id).photo_path
+    assert first and db.get(MenuOffering, b.id).photo_path == first  # one upload, one file
+    client.post(url, files={"file": ("b.jpg", jpeg(), "image/jpeg")}, data={"also": f"{b.id}"}, headers=H)
+    assert client.get(f"/media/{first}").status_code == 404  # replaced everywhere, old file removed
+    assert client.post(url, files={"file": ("a.jpg", jpeg(), "image/jpeg")}, data={"also": "x"}, headers=H).status_code == 422
+
+
+def test_cutoffs_show_open_and_closed_order_by_times(client, vend):
+    rows = client.get("/api/v1/vendor/offerings/cutoffs", params={"slot": "lunch", "days": 2}).json()
+    assert [r["date"] for r in rows] == [str(TODAY), str(TOMORROW)]
+    today, tomorrow = rows[0]["presets"], rows[1]["presets"]
+    # clock is 08:00 on TODAY: today's "night before 9 pm" has passed, tomorrow's hasn't
+    assert today["night_before_9pm"]["open"] is False and tomorrow["night_before_9pm"]["open"] is True
+    assert set(today) == {"2h", "1h", "night_before_9pm", "morning_10am"}

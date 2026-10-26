@@ -2,12 +2,12 @@
 from datetime import date, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, UploadFile
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.deps import DbDep, require_role, require_xhr_header
-from app.models import MenuOffering, Order, OrderItem, OrderStatus, Role, User, Vendor
+from app.models import MenuOffering, Order, OrderItem, OrderStatus, Role, Slot, User, Vendor
 from app.schemas.order import CopyIn, OfferingIn, OfferingUpdate
 from app.services import clock, images, menu
 from app.services.vendors import get_vendor_for_user
@@ -45,6 +45,26 @@ def _release_photo(db: Session, path: str | None, *, exclude_id: int) -> None:
         MenuOffering.photo_path == path, MenuOffering.id != exclude_id))
     if not still_used:
         images.delete_stored(path, False)
+
+
+@router.get("/cutoffs")
+def cutoffs(user: VendorUser, slot: Slot, days: int = Query(7, ge=1, le=menu.MAX_DAYS_AHEAD + 1)):
+    """Order-by time per day and preset, so the add-dish form can show "closes 10:30 am" and grey out closed days.
+    `null` = that preset doesn't work for that meal (e.g. after it starts); `open` = still in the future."""
+    now, today = clock.now(), clock.local_today()
+    out = []
+    for i in range(days):
+        d = today + timedelta(days=i)
+        row = {"date": d, "presets": {}}
+        for preset in ("2h", "1h", "night_before_9pm", "morning_10am"):
+            try:
+                at = clock.cutoff_for(d, slot, preset)
+            except ValueError:
+                row["presets"][preset] = None
+                continue
+            row["presets"][preset] = {"cutoff_at": at, "open": at > now}
+        out.append(row)
+    return out
 
 
 @router.get("")
@@ -161,16 +181,24 @@ def delete_offering(offering_id: int, user: VendorUser, db: DbDep):
 
 
 @router.post("/{offering_id}/photo", dependencies=[Depends(require_xhr_header)])
-def upload_photo(offering_id: int, user: VendorUser, db: DbDep, file: UploadFile):
+def upload_photo(
+    offering_id: int, user: VendorUser, db: DbDep, file: UploadFile, also: Annotated[str, Form()] = "",
+):
+    """`also`: comma-separated ids of the same dish on other days; they share the one stored file."""
     vendor = _vendor(db, user)
-    o = _own_offering(db, vendor, offering_id)
+    try:
+        extra = {int(x) for x in also.split(",") if x.strip()} - {offering_id}
+    except ValueError:
+        raise HTTPException(422, "also must be offering ids") from None
+    targets = [_own_offering(db, vendor, offering_id)] + [_own_offering(db, vendor, i) for i in sorted(extra)]
     try:
         stored = images.save_upload(file.file, subdir=f"v{vendor.id}", private=False)
     except images.UploadError as e:
         raise HTTPException(e.status_code, e.detail) from None
-    old = o.photo_path
-    o.photo_path = stored.path
+    old = {o.photo_path for o in targets}
+    for o in targets:
+        o.photo_path = stored.path
     db.commit()
-    if old:
-        _release_photo(db, old, exclude_id=o.id)
-    return menu.offering_vendor(o, clock.now())
+    for path in old:  # every target now points at the new file, so excluding any one of them is enough
+        _release_photo(db, path, exclude_id=targets[0].id)
+    return menu.offering_vendor(targets[0], clock.now())
