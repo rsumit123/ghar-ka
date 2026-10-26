@@ -1,4 +1,12 @@
 /** Shared design tokens. Apps: `presets: [require('@gharka/ui/tailwind-preset')]` and scan packages/ui/src. */
+/** Linear clamp(): minPx at a 360px viewport, maxPx at 640px and above. */
+const fluid = (minPx, maxPx, minVw = 360, maxVw = 640) => {
+  const slope = (maxPx - minPx) / (maxVw - minVw);
+  const r = (n) => Number(n.toFixed(4));
+  const intercept = r((minPx - slope * minVw) / 16);
+  return `clamp(${r(minPx / 16)}rem, ${intercept}rem + ${r(slope * 100)}vw, ${r(maxPx / 16)}rem)`;
+};
+
 module.exports = {
   theme: {
     extend: {
@@ -28,6 +36,15 @@ module.exports = {
       boxShadow: {
         soft: '0 1px 2px rgba(43,33,24,.06), 0 6px 18px -6px rgba(43,33,24,.14)',
         lift: '0 2px 4px rgba(43,33,24,.08), 0 14px 30px -10px rgba(43,33,24,.22)',
+      },
+      // Bilingual labels double text length, so larger sizes shrink on phones (same as Tailwind defaults from 640px up).
+      fontSize: {
+        lg: [fluid(17, 18), { lineHeight: '1.55' }],
+        xl: [fluid(18, 20), { lineHeight: '1.4' }],
+        '2xl': [fluid(20, 24), { lineHeight: '1.3' }],
+        '3xl': [fluid(24, 30), { lineHeight: '1.2' }],
+        '4xl': [fluid(28, 36), { lineHeight: '1.12' }],
+        '5xl': [fluid(34, 48), { lineHeight: '1' }],
       },
       minHeight: { tap: '3rem', 'tap-lg': '3.5rem' },
     },
