@@ -155,8 +155,9 @@ function Hero({ v }: { v: VendorProfile }) {
       </div>
       <div className="mt-2.5 flex flex-wrap gap-1.5">
         {v.fssai_registered && <Badge tone="leaf"><Icon.Check className="h-3.5 w-3.5" /> FSSAI registered</Badge>}
-        {v.offers_pickup && <Badge>Pickup</Badge>}
+        {v.offers_pickup && <Badge>Collect from kitchen</Badge>}
         {v.delivery_radius_km > 0 && <Badge tone={v.delivers_to_you ? 'turmeric' : 'neutral'}>🛵 {v.delivers_to_you ? 'Delivers to you' : `Delivers within ${v.delivery_radius_km} km`}</Badge>}
+        {v.delivery_radius_km > 0 && <Badge tone="neutral">{v.delivery_by === 'partner' ? 'Via delivery partner' : 'Cook delivers'}</Badge>}
       </div>
       {wa && (
         <a href={wa} target="_blank" rel="noopener noreferrer"

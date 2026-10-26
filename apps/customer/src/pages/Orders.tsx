@@ -3,11 +3,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Shell } from '../components/Shell';
 import { dateLong, rupees, slotLabel } from '../lib/format';
+import { handoverLabel, statusText } from '../lib/handover';
 import type { OrderData, OrderStatus } from '../lib/types';
 
-export const STATUS_TEXT: Record<OrderStatus, string> = {
-  placed: 'Waiting for the cook', accepted: 'Cook is preparing', ready: 'Ready', completed: 'Completed', cancelled: 'Cancelled',
-};
 export const STATUS_TONE: Record<OrderStatus, BadgeTone> = {
   placed: 'turmeric', accepted: 'turmeric', ready: 'leaf', completed: 'leaf', cancelled: 'terracotta',
 };
@@ -38,10 +36,10 @@ function OrdersList() {
                       <p className="truncate font-serif text-lg font-bold">{o.vendor.display_name} {o.is_tiffin && <Badge tone="turmeric" className="ml-1 align-middle font-sans text-xs leading-5">Tiffin</Badge>}</p>
                       <p className="text-sm text-ink-soft">{slotLabel(o.slot)} · {dateLong(o.date)}</p>
                     </div>
-                    <Badge tone={STATUS_TONE[o.status]}>{STATUS_TEXT[o.status]}</Badge>
+                    <Badge tone={STATUS_TONE[o.status]}>{statusText(o)}</Badge>
                   </div>
                   <p className="mt-2 truncate text-sm text-ink-soft">{o.items.map((i) => `${i.qty} × ${i.name}`).join(', ')}</p>
-                  <p className="mt-1 font-semibold">{rupees(o.total)} <span className="font-normal text-ink-muted">· {o.fulfilment === 'pickup' ? 'Pickup' : 'Delivery'}</span></p>
+                  <p className="mt-1 font-semibold">{rupees(o.total)} <span className="font-normal text-ink-muted">· {handoverLabel(o)}</span></p>
                 </Link>
               </li>
             ))}

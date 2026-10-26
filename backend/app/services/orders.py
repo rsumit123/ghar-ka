@@ -162,7 +162,7 @@ def _place_order(db: Session, customer: User, payload: OrderIn, now: datetime) -
     order = Order(
         customer_id=customer.id, vendor_id=vendor.id, date=first.date, slot=first.slot,
         status=OrderStatus.placed, fulfilment=payload.fulfilment,
-        delivery_address=address if is_delivery else None,
+        delivery_by=vendor.delivery_by if is_delivery else None, delivery_address=address if is_delivery else None,
         lat=point[0] if (is_delivery and point) else None, lng=point[1] if (is_delivery and point) else None,
         total=total, payment_method=payload.payment_method, payment_status=PaymentStatus.pending,
         note=payload.note, items=items, created_at=now, updated_at=now,

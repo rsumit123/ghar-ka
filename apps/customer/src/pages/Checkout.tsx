@@ -6,6 +6,7 @@ import { FulfilmentOption } from '../components/FulfilmentOption';
 import { Shell } from '../components/Shell';
 import { cartCount, cartStore, cartTotal, useCart } from '../lib/cart';
 import { cutoffText, dateLong, haversineKm, rupees, slotLabel } from '../lib/format';
+import { deliverySub } from '../lib/handover';
 import { placeStore } from '../lib/place';
 import { payForOrder } from '../lib/razorpay';
 import type { Fulfilment, OrderData, VendorProfile } from '../lib/types';
@@ -131,9 +132,9 @@ export default function Checkout() {
             <h2 className="font-serif text-xl font-bold">How will you get it?</h2>
             <div className="mt-2 grid gap-2.5">
               <FulfilmentOption selected={fulfilment === 'pickup'} disabled={!!options.pickupWhy} why={options.pickupWhy} onSelect={() => setFulfilment('pickup')}
-                title="Pick up" sub={vendor.locality_name ? `from ${vendor.display_name}'s kitchen, ${vendor.locality_name}` : `from ${vendor.display_name}'s kitchen`} icon={<Icon.Walk className="h-8 w-8" />} />
+                title="I'll collect it" sub={vendor.locality_name ? `from ${vendor.display_name}'s kitchen, ${vendor.locality_name}` : `from ${vendor.display_name}'s kitchen`} icon={<Icon.Walk className="h-8 w-8" />} />
               <FulfilmentOption selected={fulfilment === 'delivery'} disabled={!!options.deliveryWhy} why={options.deliveryWhy} onSelect={() => setFulfilment('delivery')}
-                title="Deliver to me" sub={`within ${vendor.delivery_radius_km} km`} icon={<Icon.Bike className="h-8 w-8" />} />
+                title="Bring it to me" sub={deliverySub(vendor)} icon={<Icon.Bike className="h-8 w-8" />} />
             </div>
             {fulfilment === 'pickup' && <p className="mt-2 text-sm text-ink-muted">The exact address is shared once the cook accepts your order.</p>}
           </section>

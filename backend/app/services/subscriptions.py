@@ -251,6 +251,7 @@ def materialize_subscription_orders(
         return 0
     ids = [s.id for s in subs]
     plans, skips, existing = _plans(db, subs), _skips(db, ids), _orders(db, ids)
+    delivery_by = dict(db.execute(select(Vendor.id, Vendor.delivery_by).where(Vendor.id.in_({s.vendor_id for s in subs}))).all())
 
     created = 0
     for sub in subs:
@@ -265,6 +266,7 @@ def materialize_subscription_orders(
             order = Order(
                 customer_id=sub.customer_id, vendor_id=sub.vendor_id, date=d, slot=plan.slot,
                 status=OrderStatus.placed, fulfilment=sub.fulfilment,
+                delivery_by=delivery_by.get(sub.vendor_id) if is_delivery else None,
                 delivery_address=sub.delivery_address if is_delivery else None,
                 lat=sub.lat if is_delivery else None, lng=sub.lng if is_delivery else None,
                 total=per_meal, payment_method=PaymentMethod.cod, payment_status=PaymentStatus.pending,

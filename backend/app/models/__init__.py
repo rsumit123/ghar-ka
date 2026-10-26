@@ -2,6 +2,7 @@
 from app.models.audit import AuditLog
 from app.models.enums import (
     ComplaintStatus,
+    DeliveryBy,
     Diet,
     FssaiStatus,
     Fulfilment,
@@ -23,7 +24,7 @@ from app.models.user import AuthSession, OtpCode, User
 from app.models.vendor import FssaiRecord, Vendor, VendorMedia
 
 __all__ = [
-    "AuditLog", "AuthSession", "Complaint", "ComplaintStatus", "Diet", "FssaiRecord", "FssaiStatus",
+    "AuditLog", "AuthSession", "Complaint", "ComplaintStatus", "DeliveryBy", "Diet", "FssaiRecord", "FssaiStatus",
     "Fulfilment", "GeocodeCache", "Locality", "MediaKind", "MenuOffering", "Order", "OrderItem",
     "OrderStatus", "OtpCode", "PaymentMethod", "PaymentStatus", "Review", "ReviewStatus", "Role",
     "Slot", "Subscription", "SubscriptionSkip", "SubscriptionStatus", "TiffinPlan", "User", "Vendor",

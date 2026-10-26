@@ -27,6 +27,7 @@ export type AdminVendorDetail = AdminVendorRow & {
   review_note: string | null;
   offers_pickup: boolean;
   delivery_radius_km: number;
+  delivery_by: 'self' | 'partner';
   live_override_reason: string | null;
   approved_at: string | null;
   user: { id: number; name: string; phone: string | null } | null;
@@ -74,6 +75,7 @@ export type AdminOrder = {
   slot: 'lunch' | 'dinner';
   status: 'placed' | 'accepted' | 'ready' | 'completed' | 'cancelled';
   fulfilment: 'pickup' | 'delivery';
+  delivery_by: 'self' | 'partner' | null;
   total: number;
   payment_method: string;
   payment_status: string;

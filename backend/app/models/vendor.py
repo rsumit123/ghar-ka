@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, Date, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base, UTCDateTime, str_enum, utcnow
-from app.models.enums import FssaiStatus, MediaKind, ReviewStatus
+from app.models.enums import DeliveryBy, FssaiStatus, MediaKind, ReviewStatus
 
 
 class Vendor(Base):
@@ -26,6 +26,7 @@ class Vendor(Base):
     review_note: Mapped[str | None] = mapped_column(Text)
     offers_pickup: Mapped[bool] = mapped_column(Boolean, default=True)
     delivery_radius_km: Mapped[float] = mapped_column(Float, default=0.0)  # 0 = no delivery
+    delivery_by: Mapped[DeliveryBy] = mapped_column(str_enum(DeliveryBy), default=DeliveryBy.self, server_default="self")
     live_override: Mapped[bool] = mapped_column(Boolean, default=False)
     live_override_reason: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)

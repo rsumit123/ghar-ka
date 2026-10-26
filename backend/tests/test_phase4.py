@@ -138,6 +138,17 @@ def test_delivery_subscription_inside_radius(client, cust, login_as, plan, clk):
     assert r.status_code == 201 and r.json()["delivery_address"] == "5 Park Rd"
 
 
+def test_tiffin_delivery_orders_carry_who_delivers(client, db, cust, login_as, plan, vendor, clk):
+    from app.models import DeliveryBy
+    vendor.delivery_by = DeliveryBy.partner
+    db.commit()
+    login_as(cust)
+    sid = subscribe(client, plan, fulfilment="delivery", delivery_address="5 Park Rd", lat=12.9720, lng=77.5950).json()["id"]
+    clk.set(at(WED, 8))
+    assert subs.materialize_subscription_orders(db, WED) == 1
+    assert db.scalar(select(Order).where(Order.subscription_id == sid)).delivery_by == DeliveryBy.partner
+
+
 # ---------------------------------------------------------------- skip / unskip
 
 def test_skip_before_and_after_cutoff(client, db, clk, sub):

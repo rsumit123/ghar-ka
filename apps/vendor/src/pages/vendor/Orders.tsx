@@ -1,5 +1,5 @@
 import { api, ApiError, Badge, type BadgeTone, Bi, brand, Button, Card, cx, type DictKey, EmptyState, Icon, Input, Modal, Page, Spinner, t } from '@gharka/ui';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SiteHeader } from '../../components/SiteHeader';
 import { DateStrip } from '../../components/vendor/DateStrip';
@@ -17,6 +17,18 @@ const NEXT: Partial<Record<OrderStatus, { action: 'accept' | 'ready' | 'complete
   placed: { action: 'accept', k: 'accept', cls: 'bg-turmeric-500 text-ink hover:bg-turmeric-400' },
   accepted: { action: 'ready', k: 'ready', cls: 'bg-leaf-500 text-white hover:bg-leaf-600' },
   ready: { action: 'complete', k: 'done', cls: 'bg-ink text-cream hover:bg-ink-soft' },
+};
+type Handover = 'pickup' | 'self' | 'partner';
+const handover = (o: VendorOrder): Handover => (o.fulfilment === 'pickup' ? 'pickup' : o.delivery_by === 'partner' ? 'partner' : 'self');
+/** Words for the ready/done steps that match how the food leaves the kitchen. */
+const READY_STATUS: Record<Handover, DictKey> = { pickup: 'statusReadyToCollect', self: 'statusOnTheWay', partner: 'statusWithPartner' };
+const DONE_STATUS: Record<Handover, DictKey> = { pickup: 'statusCollected', self: 'statusDelivered', partner: 'statusDelivered' };
+const READY_BUTTON: Record<Handover, DictKey> = { pickup: 'markReadyToCollect', self: 'markOutForDelivery', partner: 'markHandedToPartner' };
+const DONE_BUTTON: Record<Handover, DictKey> = { pickup: 'markCollected', self: 'markDelivered', partner: 'markDelivered' };
+const HANDOVER: Record<Handover, { k: DictKey; icon: ReactNode }> = {
+  pickup: { k: 'pickup', icon: <Icon.Walk className="h-5 w-5" /> },
+  self: { k: 'homeDelivery', icon: <Icon.Bike className="h-5 w-5" /> },
+  partner: { k: 'partnerDelivery', icon: <Icon.Bike className="h-5 w-5" /> },
 };
 const REASONS: DictKey[] = ['reasonOutOfStock', 'reasonUnwell', 'reasonTooFar', 'reasonOther'];
 const isActive = (o: VendorOrder) => o.status === 'placed' || o.status === 'accepted' || o.status === 'ready';
@@ -121,8 +133,10 @@ function SlotSection({ slot, orders, summary, onChanged, onCancel }: {
 function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () => void; onCancel: (o: VendorOrder) => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const next = NEXT[o.status];
-  const st = STATUS[o.status];
+  const how = handover(o);
+  const step = NEXT[o.status];
+  const next = step && { ...step, k: o.status === 'accepted' ? READY_BUTTON[how] : o.status === 'ready' ? DONE_BUTTON[how] : step.k };
+  const st = { ...STATUS[o.status], k: o.status === 'ready' ? READY_STATUS[how] : o.status === 'completed' ? DONE_STATUS[how] : STATUS[o.status].k };
 
   async function advance() {
     if (!next) return;
@@ -157,7 +171,7 @@ function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () =
       </ul>
 
       <div className="mt-3 rounded-2xl bg-cream-100/70 p-3 text-base">
-        <p className="font-bold">{o.fulfilment === 'delivery' ? <span className="inline-flex items-center gap-1.5"><Icon.Bike className="h-5 w-5" /> <Bi k="homeDelivery" /></span> : <span className="inline-flex items-center gap-1.5"><Icon.Walk className="h-5 w-5" /> <Bi k="pickup" /></span>}</p>
+        <p className="font-bold"><span className="inline-flex items-center gap-1.5">{HANDOVER[how].icon} <Bi k={HANDOVER[how].k} /></span></p>
         {o.fulfilment === 'delivery' && o.delivery_address && (
           <p className="mt-0.5">{o.delivery_address}{mapUrl && <> · <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-leaf-700 underline">Map</a></>}</p>
         )}

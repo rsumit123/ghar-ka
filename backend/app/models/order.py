@@ -4,7 +4,7 @@ from sqlalchemy import CheckConstraint, Date, Float, ForeignKey, Index, Integer,
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base, UTCDateTime, str_enum, utcnow
-from app.models.enums import Fulfilment, OrderStatus, PaymentMethod, PaymentStatus, Slot
+from app.models.enums import DeliveryBy, Fulfilment, OrderStatus, PaymentMethod, PaymentStatus, Slot
 
 
 class Order(Base):
@@ -22,6 +22,8 @@ class Order(Base):
     slot: Mapped[Slot] = mapped_column(str_enum(Slot))
     status: Mapped[OrderStatus] = mapped_column(str_enum(OrderStatus), default=OrderStatus.placed, index=True)
     fulfilment: Mapped[Fulfilment] = mapped_column(str_enum(Fulfilment))
+    # Snapshot of the cook's setting when the order was made; None for pickup.
+    delivery_by: Mapped[DeliveryBy | None] = mapped_column(str_enum(DeliveryBy))
     delivery_address: Mapped[str | None] = mapped_column(Text)
     lat: Mapped[float | None] = mapped_column(Float)
     lng: Mapped[float | None] = mapped_column(Float)

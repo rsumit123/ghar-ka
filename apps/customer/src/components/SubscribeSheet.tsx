@@ -2,6 +2,7 @@ import { api, ApiError, Button, cx, Icon, Modal, useAuth } from '@gharka/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { dayNum, daysText, haversineKm, isoDate, monthShort, rupees, slotLabel, weekdayIndex, weekdayShort } from '../lib/format';
+import { deliverySub } from '../lib/handover';
 import { placeStore } from '../lib/place';
 import type { Fulfilment, Plan, Subscription, VendorProfile } from '../lib/types';
 import { FulfilmentOption } from './FulfilmentOption';
@@ -125,9 +126,9 @@ function Body({ plan, vendor, onClose }: { plan: Plan; vendor: VendorProfile; on
         <h3 className="mb-2 font-semibold">How will you get it?</h3>
         <div className="grid gap-2.5">
           <FulfilmentOption selected={fulfilment === 'pickup'} disabled={!!options.pickupWhy} why={options.pickupWhy} onSelect={() => setFulfilment('pickup')}
-            title="Pick up" sub={`from ${vendor.display_name}'s kitchen`} icon={<Icon.Walk className="h-8 w-8" />} />
+            title="I'll collect it" sub={`from ${vendor.display_name}'s kitchen`} icon={<Icon.Walk className="h-8 w-8" />} />
           <FulfilmentOption selected={fulfilment === 'delivery'} disabled={!!options.deliveryWhy} why={options.deliveryWhy} onSelect={() => setFulfilment('delivery')}
-            title="Deliver to me" sub={`within ${vendor.delivery_radius_km} km`} icon={<Icon.Bike className="h-8 w-8" />} />
+            title="Bring it to me" sub={deliverySub(vendor)} icon={<Icon.Bike className="h-8 w-8" />} />
         </div>
         {fulfilment === 'delivery' && (
           <div className="mt-3 space-y-3">

@@ -1,5 +1,7 @@
 export type ReviewStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type FssaiStatus = 'docs_pending' | 'docs_received' | 'application_filed' | 'registration_issued' | 'rejected';
+/** Who brings a delivery: the cook, or a delivery partner the cook hands it to. */
+export type DeliveryBy = 'self' | 'partner';
 export type MediaKind = 'profile' | 'kitchen' | 'id_proof' | 'address_proof' | 'passport_photo' | 'dish';
 
 export type Media = {
@@ -39,6 +41,7 @@ export type VendorMe = {
   review_note?: string | null;
   offers_pickup?: boolean;
   delivery_radius_km?: number;
+  delivery_by?: DeliveryBy;
   is_live: boolean;
   fssai?: FssaiInfo | null;
   media: Media[];
@@ -78,6 +81,7 @@ export type VendorOrder = {
   date: string;
   slot: Slot;
   fulfilment: 'pickup' | 'delivery';
+  delivery_by: DeliveryBy | null;
   delivery_address: string | null;
   lat: number | null;
   lng: number | null;

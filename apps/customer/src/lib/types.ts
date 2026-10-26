@@ -1,6 +1,8 @@
 export type Slot = 'lunch' | 'dinner';
 export type Diet = 'veg' | 'egg' | 'nonveg';
 export type Fulfilment = 'pickup' | 'delivery';
+/** Who brings a delivery: the cook, or a delivery partner the cook hands it to. */
+export type DeliveryBy = 'self' | 'partner';
 export type OrderStatus = 'placed' | 'accepted' | 'ready' | 'completed' | 'cancelled';
 
 export type Dish = {
@@ -30,6 +32,7 @@ export type VendorCardData = {
   delivers_to_you: boolean;
   offers_pickup: boolean;
   delivery_radius_km: number;
+  delivery_by: DeliveryBy;
   fssai_registered: boolean;
   cook_photo: string | null;
   kitchen_photo: string | null;
@@ -65,6 +68,7 @@ export type VendorProfile = {
   whatsapp_digits: string;
   offers_pickup: boolean;
   delivery_radius_km: number;
+  delivery_by: DeliveryBy;
   distance_km: number | null;
   delivers_to_you: boolean;
   fssai_registered: boolean;
@@ -84,6 +88,7 @@ export type OrderData = {
   date: string;
   slot: Slot;
   fulfilment: Fulfilment;
+  delivery_by: DeliveryBy | null;
   delivery_address: string | null;
   note: string | null;
   total: number;

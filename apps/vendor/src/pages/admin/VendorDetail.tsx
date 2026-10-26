@@ -213,7 +213,7 @@ export default function AdminVendorDetail() {
             <Field label="Address">{v.address_line}</Field>
             <Field label="Exact location">{pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : null}</Field>
             <Field label="Pickup">{v.offers_pickup ? 'Yes' : 'No'}</Field>
-            <Field label="Delivery radius">{v.delivery_radius_km ? `${v.delivery_radius_km} km` : 'No delivery'}</Field>
+            <Field label="Delivery radius">{v.delivery_radius_km ? `${v.delivery_radius_km} km, ${v.delivery_by === 'partner' ? 'via delivery partner' : 'cook delivers'}` : 'No delivery'}</Field>
             <Field label="Joined">{fmtDate(v.created_at)}</Field>
             <Field label="Approved">{fmtDate(v.approved_at)}</Field>
           </dl>

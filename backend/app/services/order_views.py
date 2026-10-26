@@ -29,7 +29,7 @@ def _cutoffs(db: Session, orders: list[Order]) -> dict[int, datetime]:
 def _base(o: Order, cutoff: datetime | None) -> dict:
     return {
         "id": o.id, "status": o.status, "date": o.date, "slot": o.slot, "fulfilment": o.fulfilment,
-        "delivery_address": o.delivery_address, "lat": o.lat, "lng": o.lng, "note": o.note, "total": o.total,
+        "delivery_by": o.delivery_by, "delivery_address": o.delivery_address, "lat": o.lat, "lng": o.lng, "note": o.note, "total": o.total,
         "payment_method": o.payment_method, "payment_status": o.payment_status, "cancel_reason": o.cancel_reason,
         "subscription_id": o.subscription_id, "is_tiffin": o.subscription_id is not None,
         "items": _items(o), "cutoff_at": cutoff, "created_at": o.created_at, "updated_at": o.updated_at,

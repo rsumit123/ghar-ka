@@ -7,13 +7,14 @@ import { ReviewSection } from '../components/ReviewForm';
 import { Shell } from '../components/Shell';
 import { cutoffText, dateLong, dateTimeShort, rupees, slotLabel, waLink } from '../lib/format';
 import type { OrderData } from '../lib/types';
-import { STATUS_TEXT, STATUS_TONE } from './Orders';
+import { stepLabels, statusText } from '../lib/handover';
+import { STATUS_TONE } from './Orders';
 
 const STEPS = [
-  { key: 'placed', label: 'Placed', icon: <Icon.Receipt className="h-5 w-5" /> },
-  { key: 'accepted', label: 'Accepted', icon: <Icon.Chef className="h-5 w-5" /> },
-  { key: 'ready', label: 'Ready', icon: <Icon.Tiffin className="h-5 w-5" /> },
-  { key: 'completed', label: 'Done', icon: <Icon.Smile className="h-5 w-5" /> },
+  { key: 'placed', icon: <Icon.Receipt className="h-5 w-5" /> },
+  { key: 'accepted', icon: <Icon.Chef className="h-5 w-5" /> },
+  { key: 'ready', icon: <Icon.Tiffin className="h-5 w-5" /> },
+  { key: 'completed', icon: <Icon.Smile className="h-5 w-5" /> },
 ] as const;
 
 export default function OrderDetail() {
@@ -73,6 +74,7 @@ function Detail() {
   const awaitingPayment = o.payment_method === 'razorpay' && o.payment_status !== 'paid' && o.status === 'placed';
   const justPlaced = params.get('placed') === '1' && o.status === 'placed' && !awaitingPayment;
   const stepIndex = STEPS.findIndex((s) => s.key === o.status);
+  const labels = stepLabels(o);
   const wa = o.vendor.whatsapp_digits ? waLink(o.vendor.whatsapp_digits, `Hi ${o.vendor.display_name}, about my ${brand.name} order #${o.id}`) : null;
 
   return (
@@ -98,7 +100,7 @@ function Detail() {
           {!justPlaced && <h1 className="font-serif text-2xl font-bold">{o.vendor.display_name} {o.is_tiffin && <Badge tone="turmeric" className="ml-1 align-middle font-sans text-xs leading-5">Tiffin</Badge>}</h1>}
           <p className="text-ink-soft">Order #{o.id} · {slotLabel(o.slot)}, {dateLong(o.date)}</p>
         </div>
-        <Badge tone={STATUS_TONE[o.status]}>{STATUS_TEXT[o.status]}</Badge>
+        <Badge tone={STATUS_TONE[o.status]}>{statusText(o)}</Badge>
       </div>
 
       {o.status === 'cancelled' ? (
@@ -114,7 +116,7 @@ function Detail() {
               <li key={s.key} className="relative flex flex-1 flex-col items-center text-center">
                 {i > 0 && <span className={cx('absolute right-1/2 top-5 h-1 w-full rounded-full', i <= stepIndex ? 'bg-leaf-500' : 'bg-cream-300')} aria-hidden />}
                 <span className={cx('relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 text-lg', done ? 'border-leaf-500 bg-leaf-500 text-white' : 'border-cream-300 bg-white text-ink-muted')} aria-hidden>{s.icon}</span>
-                <span className={cx('mt-1 text-xs font-semibold', done ? 'text-leaf-700' : 'text-ink-muted')}>{s.label}{i === stepIndex && <span className="sr-only"> (current)</span>}</span>
+                <span className={cx('mt-1 text-xs font-semibold', done ? 'text-leaf-700' : 'text-ink-muted')}>{labels[s.key]}{i === stepIndex && <span className="sr-only"> (current)</span>}</span>
               </li>
             );
           })}
@@ -135,9 +137,11 @@ function Detail() {
 
       <Card className="mt-3 space-y-2 text-[15px]">
         {o.fulfilment === 'pickup' ? (
-          <p><strong>Pickup</strong> from {o.vendor.display_name}.
+          <p><strong>You collect</strong> from {o.vendor.display_name}&apos;s kitchen.
             {o.vendor.pickup_address ? <> Address: <strong>{o.vendor.pickup_address}</strong></> : ' The address will show here once the cook accepts.'}</p>
-        ) : <p><strong>Delivery</strong> to {o.delivery_address}</p>}
+        ) : (
+          <p><strong>{o.delivery_by === 'partner' ? 'A delivery partner brings it' : `${o.vendor.display_name} brings it`}</strong> to {o.delivery_address}</p>
+        )}
         {o.note && <p className="text-ink-soft">Your note: “{o.note}”</p>}
         <p className="text-sm text-ink-muted">Placed {dateTimeShort(o.created_at)}</p>
       </Card>

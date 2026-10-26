@@ -60,6 +60,12 @@ class Fulfilment(StrEnum):
     delivery = "delivery"
 
 
+class DeliveryBy(StrEnum):
+    """Who brings a delivery order: the cook themselves, or a delivery partner the cook hands it to."""
+    self = "self"
+    partner = "partner"
+
+
 class PaymentMethod(StrEnum):
     cod = "cod"
     razorpay = "razorpay"

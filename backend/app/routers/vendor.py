@@ -35,7 +35,7 @@ def _me(db, user: User, vendor: Vendor | None) -> dict:
         "locality_name": locality_name(db, vendor), "pincode": vendor.pincode, "lat": vendor.lat, "lng": vendor.lng,
         "address_line": vendor.address_line, "review_status": vendor.review_status, "review_note": vendor.review_note,
         "offers_pickup": vendor.offers_pickup, "delivery_radius_km": vendor.delivery_radius_km,
-        "is_live": vendor_is_live(vendor), "fssai": vendor.fssai,
+        "delivery_by": vendor.delivery_by, "is_live": vendor_is_live(vendor), "fssai": vendor.fssai,
         "media": [media_out(m) for m in sorted(vendor.media, key=lambda m: m.id)],
         "docs_complete": not miss, "missing_docs": miss,
     }
@@ -107,6 +107,7 @@ def update_fulfilment(body: FulfilmentIn, user: VendorUser, db: DbDep):
     vendor = _require_vendor(db, user)
     vendor.offers_pickup = body.offers_pickup
     vendor.delivery_radius_km = body.delivery_radius_km
+    vendor.delivery_by = body.delivery_by
     db.commit()
     return _me(db, user, vendor)
 

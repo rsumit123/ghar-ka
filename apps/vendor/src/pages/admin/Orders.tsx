@@ -11,6 +11,7 @@ const TONE: Record<AdminOrder['status'], BadgeTone> = { placed: 'terracotta', ac
 const PAGE_SIZE = 20;
 
 const itemsText = (o: AdminOrder) => o.items.map((i) => `${i.qty} × ${i.name}`).join(', ');
+const handoverText = (o: AdminOrder) => (o.fulfilment === 'pickup' ? 'customer collects' : o.delivery_by === 'partner' ? 'delivery partner' : 'cook delivers');
 
 export default function AdminOrders() {
   const [params, setParams] = useSearchParams();
@@ -89,7 +90,7 @@ export default function AdminOrders() {
                     <td className="p-3 whitespace-nowrap">{fmtDate(o.date)}<br /><span className="capitalize text-ink-muted">{o.slot}</span></td>
                     <td className="p-3">{o.customer.name}<br /><span className="text-ink-muted">{o.customer.phone}</span></td>
                     <td className="p-3"><Link className="underline decoration-turmeric-400" to={`/admin/vendors/${o.vendor.id}`}>{o.vendor.name}</Link></td>
-                    <td className="max-w-[16rem] p-3">{o.is_tiffin && <Badge tone="turmeric" className="mr-1">Tiffin</Badge>}{itemsText(o)}<br /><span className="text-ink-muted">{o.fulfilment}</span></td>
+                    <td className="max-w-[16rem] p-3">{o.is_tiffin && <Badge tone="turmeric" className="mr-1">Tiffin</Badge>}{itemsText(o)}<br /><span className="text-ink-muted">{handoverText(o)}</span></td>
                     <td className="p-3 text-right font-semibold tabular-nums">{rupees(o.total)}<br /><span className="text-xs font-normal text-ink-muted">{o.payment_method} · {o.payment_status}</span></td>
                     <td className="p-3"><Badge tone={TONE[o.status]}>{o.status}</Badge>{o.cancel_reason && <p className="mt-1 max-w-[10rem] text-xs text-ink-muted">{o.cancel_reason}</p>}</td>
                   </tr>
@@ -105,7 +106,7 @@ export default function AdminOrders() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="font-semibold">#{o.id} · {o.vendor.name} {o.is_tiffin && <Badge tone="turmeric" className="ml-1">Tiffin</Badge>}</p>
-                      <p className="text-sm text-ink-soft">{fmtDate(o.date)} · <span className="capitalize">{o.slot}</span> · {o.fulfilment}</p>
+                      <p className="text-sm text-ink-soft">{fmtDate(o.date)} · <span className="capitalize">{o.slot}</span> · {handoverText(o)}</p>
                     </div>
                     <Badge tone={TONE[o.status]}>{o.status}</Badge>
                   </div>

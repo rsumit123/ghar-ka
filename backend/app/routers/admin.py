@@ -149,7 +149,7 @@ def vendor_detail(vendor_id: int, db: DbDep):
     return {
         **row, "story": v.story, "address_line": v.address_line, "whatsapp_phone": v.whatsapp_phone,
         "locality_id": v.locality_id, "lat": v.lat, "lng": v.lng, "review_note": v.review_note,
-        "offers_pickup": v.offers_pickup, "delivery_radius_km": v.delivery_radius_km,
+        "offers_pickup": v.offers_pickup, "delivery_radius_km": v.delivery_radius_km, "delivery_by": v.delivery_by,
         "live_override_reason": v.live_override_reason, "approved_at": v.approved_at,
         "user": {"id": user.id, "name": user.name, "phone": user.phone} if user else None,
         "fssai": _fssai_dict(v.fssai), "media": media, "missing_docs": missing_docs(v),
@@ -280,6 +280,7 @@ def admin_orders(
         "items": [
             {
                 "id": o.id, "date": o.date, "slot": o.slot, "status": o.status, "fulfilment": o.fulfilment,
+                "delivery_by": o.delivery_by,
                 "total": o.total, "payment_method": o.payment_method, "payment_status": o.payment_status,
                 "is_tiffin": o.subscription_id is not None, "created_at": o.created_at, "cancel_reason": o.cancel_reason,
                 "customer": {"id": o.customer_id, "name": customers[o.customer_id].name if o.customer_id in customers else "",

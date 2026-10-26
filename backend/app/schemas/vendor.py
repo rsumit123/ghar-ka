@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
-from app.models import FssaiStatus, MediaKind, ReviewStatus
+from app.models import DeliveryBy, FssaiStatus, MediaKind, ReviewStatus
 from app.services.phone import InvalidPhone, normalize_phone
 
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=120)]
@@ -54,6 +54,13 @@ class ProfileIn(BaseModel):
 class FulfilmentIn(BaseModel):
     offers_pickup: bool
     delivery_radius_km: float = Field(ge=0, le=10)
+    delivery_by: DeliveryBy = DeliveryBy.self
+
+    @model_validator(mode="after")
+    def _some_way(self):
+        if not self.offers_pickup and self.delivery_radius_km <= 0:
+            raise ValueError("Offer pickup or delivery, otherwise no one can order")
+        return self
 
 
 class MediaOut(BaseModel):
@@ -93,6 +100,7 @@ class VendorMeOut(BaseModel):
     review_note: str | None = None
     offers_pickup: bool | None = None
     delivery_radius_km: float | None = None
+    delivery_by: DeliveryBy | None = None
     is_live: bool = False
     fssai: FssaiPublicOut | None = None
     media: list[MediaOut] = []
