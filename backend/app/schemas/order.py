@@ -79,6 +79,7 @@ class OfferingIn(BaseModel):
     portions_total: int = Field(ge=1, le=500)
     cutoff_preset: CutoffPresetId | None = None  # default "2h" before the slot starts
     cutoff_time: Annotated[str, StringConstraints(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")] | None = None  # local HH:MM same day
+    photo_from: int | None = None  # id of one of this cook's past dishes whose photo the new days reuse
 
 
 class OfferingUpdate(BaseModel):

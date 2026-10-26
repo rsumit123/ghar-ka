@@ -67,6 +67,29 @@ def cutoffs(user: VendorUser, slot: Slot, days: int = Query(7, ge=1, le=menu.MAX
     return out
 
 
+@router.get("/recent")
+def recent_dishes(user: VendorUser, db: DbDep, limit: int = Query(12, ge=1, le=30)):
+    """The cook's past dishes, newest first, one per name, so the add-dish form can refill them in one tap."""
+    vendor = _vendor(db, user)
+    rows = db.scalars(
+        select(MenuOffering).where(MenuOffering.vendor_id == vendor.id)
+        .order_by(MenuOffering.date.desc(), MenuOffering.id.desc()).limit(500)
+    ).all()
+    seen: dict[str, dict] = {}
+    for o in rows:
+        key = " ".join(o.dish_name.lower().split())
+        if key in seen:
+            seen[key]["times"] += 1
+            if not seen[key]["photo"] and o.photo_path:  # newest day had no photo: fall back to an older day's
+                seen[key].update(photo=o.photo_path, photo_from=o.id)
+            continue
+        if len(seen) < limit:
+            seen[key] = {"offering_id": o.id, "dish_name": o.dish_name, "price": o.price, "diet": o.diet,
+                         "portions_total": o.portions_total, "slot": o.slot, "photo": o.photo_path,
+                         "photo_from": o.id if o.photo_path else None, "times": 1}
+    return list(seen.values())
+
+
 @router.get("")
 def list_offerings(
     user: VendorUser, db: DbDep, date_from: date | None = None, date_to: date | None = None,
@@ -90,6 +113,7 @@ def list_offerings(
 def create_offerings(body: OfferingIn, user: VendorUser, db: DbDep):
     """One dish for one or more dates. All-or-nothing: if any date is invalid nothing is created."""
     vendor = _vendor(db, user)
+    photo = _own_offering(db, vendor, body.photo_from).photo_path if body.photo_from else None
     created: list[MenuOffering] = []
     for d in sorted(set(body.dates)):
         try:
@@ -101,6 +125,7 @@ def create_offerings(body: OfferingIn, user: VendorUser, db: DbDep):
         o = MenuOffering(
             vendor_id=vendor.id, date=d, slot=body.slot, dish_name=body.dish_name, description=body.description,
             price=body.price, diet=body.diet, portions_total=body.portions_total, portions_sold=0, cutoff_at=cutoff,
+            photo_path=photo,
         )
         db.add(o)
         created.append(o)

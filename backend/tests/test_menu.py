@@ -211,3 +211,27 @@ def test_cutoffs_show_open_and_closed_order_by_times(client, vend):
     # clock is 08:00 on TODAY: today's "night before 9 pm" has passed, tomorrow's hasn't
     assert today["night_before_9pm"]["open"] is False and tomorrow["night_before_9pm"]["open"] is True
     assert set(today) == {"2h", "1h", "night_before_9pm", "morning_10am"}
+
+
+def test_recent_dishes_one_per_name_newest_first(client, db, vend, make_vendor, make_offering):
+    old = make_offering(vend, TODAY - timedelta(days=3), name="Rajma Chawal", price=8000)
+    old.photo_path = "v1/rajma.jpg"
+    make_offering(vend, TODAY - timedelta(days=1), name="rajma  chawal", price=9000)  # same dish, newer, no photo
+    make_offering(vend, TODAY - timedelta(days=2), name="Kadhi", slot=Slot.dinner)
+    make_offering(make_vendor(), TODAY, name="Someone else's")
+    db.commit()
+    rows = client.get("/api/v1/vendor/offerings/recent").json()
+    assert [r["dish_name"] for r in rows] == ["rajma  chawal", "Kadhi"]
+    rajma = rows[0]
+    assert rajma["price"] == 9000 and rajma["times"] == 2
+    assert rajma["photo"] == "v1/rajma.jpg" and rajma["photo_from"] == old.id  # newest day had no photo
+
+
+def test_new_dish_can_reuse_a_past_photo(client, db, vend, make_vendor, make_offering):
+    past = make_offering(vend, TODAY - timedelta(days=1))
+    past.photo_path = "v1/dal.jpg"
+    db.commit()
+    r = client.post("/api/v1/vendor/offerings", json=dish(photo_from=past.id, dates=[str(TOMORROW), str(TOMORROW + timedelta(days=1))]))
+    assert r.status_code == 201 and [o["photo"] for o in r.json()] == ["v1/dal.jpg", "v1/dal.jpg"]
+    theirs = make_offering(make_vendor(), TODAY)
+    assert client.post("/api/v1/vendor/offerings", json=dish(photo_from=theirs.id)).status_code == 404

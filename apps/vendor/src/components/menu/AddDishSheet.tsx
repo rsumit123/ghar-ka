@@ -17,6 +17,9 @@ const PRESETS: { id: CutoffPreset; k: DictKey }[] = [
 ];
 const DIETS: { id: Diet; k: DictKey }[] = [{ id: 'veg', k: 'dietVeg' }, { id: 'egg', k: 'dietEgg' }, { id: 'nonveg', k: 'dietNonveg' }];
 
+/** GET /vendor/offerings/recent: one row per dish the cook has made, newest first. */
+type Recent = { offering_id: number; dish_name: string; price: number; diet: Diet; portions_total: number; photo: string | null; photo_from: number | null };
+
 /** GET /vendor/offerings/cutoffs: per day, the order-by time each preset gives (null = not possible for that meal). */
 type CutoffRow = { date: string; presets: Partial<Record<CutoffPreset, { cutoff_at: string; open: boolean } | null>> };
 
@@ -73,6 +76,9 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<'close' | 'remove' | null>(null);
+  const [recent, setRecent] = useState<Recent[]>([]);
+  const [picked, setPicked] = useState<Recent | null>(null);
+  const [showChips, setShowChips] = useState(false);
   const camRef = useRef<HTMLInputElement>(null);
   const galRef = useRef<HTMLInputElement>(null);
 
@@ -84,6 +90,8 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
     setPreview(null);
     setSlot(pageSlot);
     setDays([date]);
+    setPicked(null);
+    setShowChips(!editing);
     if (editing) {
       setName(editing.dish_name);
       setPrice(Math.round(editing.price / 100));
@@ -112,6 +120,11 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
   }, [open, editing, slot]);
 
   useEffect(() => {
+    if (!open || editing) return;
+    api.get<Recent[]>('/vendor/offerings/recent').then(setRecent).catch(() => setRecent([]));
+  }, [open, editing]);
+
+  useEffect(() => {
     if (!file) return setPreview(null);
     const url = URL.createObjectURL(file);
     setPreview(url);
@@ -124,12 +137,29 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
   const chosen = days.filter((d) => isOpen(d, preset)).sort();
   const firstDay = chosen[0] ?? dayList.find((d) => isOpen(d, preset)) ?? days[0];
   const parts = partsOf(name);
+  // The photo of a picked past dish is reused only while the name still matches it.
+  const reuse = picked && name === picked.dish_name ? picked : null;
+  // While a word is half typed ("Ra"), only the chips that start with it are shown, matching first.
+  const known = (w: string) => SUGGESTIONS.some((s) => s.en.toLowerCase() === w.toLowerCase());
+  const typing = parts.length && !known(parts[parts.length - 1]) && !/[+,]\s*$/.test(name) ? parts[parts.length - 1].toLowerCase() : '';
+  const typed = typing ? SUGGESTIONS.filter((s) => s.en.toLowerCase().startsWith(typing) || s.hi.startsWith(typing)) : [];
+  const chips = typed.length ? typed : SUGGESTIONS;
   const sold = editing?.portions_sold ?? 0;
   const canSave = name.trim().length >= 2 && price >= 1 && (editing !== null || chosen.length > 0);
 
   function togglePart(word: string) {
     const has = parts.some((p) => p.toLowerCase() === word.toLowerCase());
-    setName((has ? parts.filter((p) => p.toLowerCase() !== word.toLowerCase()) : [...parts, word]).join(' + '));
+    const base = typed.length ? parts.slice(0, -1) : parts; // finishing a half-typed word replaces it
+    setName((has ? parts.filter((p) => p.toLowerCase() !== word.toLowerCase()) : [...base, word]).join(' + '));
+  }
+
+  function pickRecent(r: Recent) {
+    setPicked(r);
+    setName(r.dish_name);
+    setDiet(r.diet);
+    setPrice(Math.round(r.price / 100));
+    setPortions(r.portions_total);
+    setFile(null);
   }
   const toggleDay = (d: string) => setDays((ds) => (ds.includes(d) ? ds.filter((x) => x !== d) : [...ds, d]));
 
@@ -146,6 +176,7 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
       } else {
         const made = await api.post<Offering[]>('/vendor/offerings', {
           dish_name: name.trim(), slot, dates: chosen, price: price * 100, diet, portions_total: portions, cutoff_preset: preset ?? '2h',
+          ...(reuse?.photo_from && !file ? { photo_from: reuse.photo_from } : {}),
         });
         ids = made.map((o) => o.id);
       }
@@ -205,26 +236,54 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
     const day = new Intl.DateTimeFormat('en-CA', { timeZone: brand.timezone }).format(new Date(c.cutoff_at));
     return <span className="font-normal opacity-80">· {day === firstDay ? '' : `${weekday(day)} `}{clockTime(c.cutoff_at)}</span>;
   };
-  const photoSrc = preview ?? (editing?.photo ? mediaUrl(editing.photo) : null);
+  const oldPhoto = editing?.photo ?? reuse?.photo;
+  const photoSrc = preview ?? (oldPhoto ? mediaUrl(oldPhoto) : null);
   const allClosedForMeal = !editing && cutoffs !== null && cutoffs.length > 0 && chosen.length === 0 && days.length > 0;
 
   return (
     <Modal open={open} onClose={onClose} title={<Bi k={editing ? 'editDish' : 'addDish'} />}>
       <div className="space-y-7">
-        <Section n={1} title={<Bi k="dishName" />} hint={<Bi k="dishNameHint" />}>
-          <div className="mb-2.5 flex flex-wrap gap-2">
-            {SUGGESTIONS.map((s) => {
-              const on = parts.some((p) => p.toLowerCase() === s.en.toLowerCase());
-              return (
-                <button key={s.en} type="button" role="checkbox" aria-checked={on} onClick={() => togglePart(s.en)}
-                  className={cx('inline-flex min-h-11 items-center gap-1 rounded-full border-2 px-3.5 text-base font-semibold transition',
-                    on ? 'border-leaf-500 bg-leaf-500 text-white' : 'border-cream-300 bg-white')}>
-                  {on && <Icon.Check className="h-4 w-4" />}{s.en} <span className="font-devanagari text-sm opacity-75" lang="hi">{s.hi}</span>
-                </button>
-              );
-            })}
-          </div>
+        {!editing && recent.length > 0 && (
+          <Section title={<Bi k="yourDishes" />} hint={<Bi k="yourDishesHint" />}>
+            <div className="-mx-5 flex snap-x scroll-px-5 gap-2.5 overflow-x-auto px-5 pb-1">
+              {recent.map((r) => {
+                const on = reuse?.offering_id === r.offering_id;
+                return (
+                  <button key={r.offering_id} type="button" aria-pressed={on} onClick={() => pickRecent(r)}
+                    className={cx('relative flex w-28 shrink-0 snap-start flex-col overflow-hidden rounded-2xl border-2 bg-white text-left transition',
+                      on ? 'border-leaf-500 ring-2 ring-leaf-500/30' : 'border-cream-300')}>
+                    {r.photo ? <img src={mediaUrl(r.photo)} alt="" className="h-20 w-full object-cover" />
+                      : <span className="flex h-20 w-full items-center justify-center bg-turmeric-50 text-3xl" aria-hidden>🍛</span>}
+                    <span className="flex flex-1 flex-col gap-0.5 p-2">
+                      <span className="line-clamp-2 text-sm font-semibold leading-tight">{r.dish_name}</span>
+                      <span className="mt-auto flex items-center gap-1 text-sm text-ink-muted"><DietMark diet={r.diet} className="h-3 w-3" />₹{Math.round(r.price / 100)}</span>
+                    </span>
+                    {on && <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-leaf-500 text-white"><Icon.Check className="h-4 w-4" /></span>}
+                  </button>
+                );
+              })}
+            </div>
+          </Section>
+        )}
+
+        <Section n={1} title={!editing && recent.length > 0 ? <Bi k="orNewDish" /> : <Bi k="dishName" />} hint={showChips ? <Bi k="dishNameHint" /> : undefined}>
           <Input size="lg" value={name} onChange={(e) => setName(e.target.value)} maxLength={160} placeholder="Rajma + Rice + Salad" aria-label={t('dishName').en} />
+          {showChips ? (
+            <div className="-mx-5 mt-2.5 flex gap-2 overflow-x-auto px-5 pb-1">
+              {chips.map((s) => {
+                const on = parts.some((p) => p.toLowerCase() === s.en.toLowerCase());
+                return (
+                  <button key={s.en} type="button" role="checkbox" aria-checked={on} onClick={() => togglePart(s.en)}
+                    className={cx('inline-flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border-2 px-3.5 text-base font-semibold transition',
+                      on ? 'border-leaf-500 bg-leaf-500 text-white' : 'border-cream-300 bg-white')}>
+                    {on && <Icon.Check className="h-4 w-4" />}{s.en} <span className="font-devanagari text-sm opacity-75" lang="hi">{s.hi}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <Button variant="ghost" size="sm" className="mt-1" onClick={() => setShowChips(true)}><Bi k="pickFromList" /></Button>
+          )}
         </Section>
 
         <Section n={2} title={<Bi k="foodType" />}>
