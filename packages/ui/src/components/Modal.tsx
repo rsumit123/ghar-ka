@@ -2,11 +2,13 @@ import { useEffect, type ReactNode } from 'react';
 import { Icon } from './Icon';
 
 /** Simple dialog: dimmed backdrop, bottom sheet on phones, centred card on larger screens. Esc / backdrop click closes. */
-export function Modal({ open, onClose, title, children }: {
+export function Modal({ open, onClose, title, children, footer }: {
   open: boolean;
   onClose: () => void;
   title: ReactNode;
   children: ReactNode;
+  /** Pinned below the scrolling body, e.g. the primary action of a long form. */
+  footer?: ReactNode;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -31,6 +33,7 @@ export function Modal({ open, onClose, title, children }: {
           </button>
         </div>
         <div className="overflow-y-auto overscroll-contain px-5 pb-5 pt-4">{children}</div>
+        {footer && <div className="shrink-0 border-t border-cream-200 bg-cream px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">{footer}</div>}
       </div>
     </div>
   );

@@ -240,8 +240,18 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
   const photoSrc = preview ?? (oldPhoto ? mediaUrl(oldPhoto) : null);
   const allClosedForMeal = !editing && cutoffs !== null && cutoffs.length > 0 && chosen.length === 0 && days.length > 0;
 
+  const footer = (
+    <>
+      {error && <p className="mb-2 rounded-xl bg-terracotta-50 p-3 font-medium text-terracotta-700" role="alert">{error}</p>}
+      {!editing && chosen.length === 0 && !allClosedForMeal && <p className="mb-2 text-center text-sm font-medium text-terracotta-600"><Bi k="pickADay" /></p>}
+      <Button size="xl" block loading={busy} disabled={!canSave} onClick={() => void save()}>
+        <Bi k="save" />{!editing && chosen.length > 1 ? <span className="ml-1 font-semibold opacity-90">· {chosen.length} <Bi k="days" only="en" /></span> : null}
+      </Button>
+    </>
+  );
+
   return (
-    <Modal open={open} onClose={onClose} title={<Bi k={editing ? 'editDish' : 'addDish'} />}>
+    <Modal open={open} onClose={onClose} title={<Bi k={editing ? 'editDish' : 'addDish'} />} footer={footer}>
       <div className="space-y-7">
         {!editing && recent.length > 0 && (
           <Section title={<Bi k="yourDishes" />} hint={<Bi k="yourDishesHint" />}>
@@ -381,14 +391,6 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
             )}
           </div>
         )}
-
-        <div className="sticky -bottom-5 -mx-5 -mb-5 border-t border-cream-200 bg-cream/95 px-5 pb-5 pt-3 backdrop-blur">
-          {error && <p className="mb-2 rounded-xl bg-terracotta-50 p-3 font-medium text-terracotta-700" role="alert">{error}</p>}
-          {!editing && chosen.length === 0 && !allClosedForMeal && <p className="mb-2 text-center text-sm font-medium text-terracotta-600"><Bi k="pickADay" /></p>}
-          <Button size="xl" block loading={busy} disabled={!canSave} onClick={() => void save()}>
-            <Bi k="save" />{!editing && chosen.length > 1 ? <span className="ml-1 font-semibold opacity-90">· {chosen.length} <Bi k="days" only="en" /></span> : null}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

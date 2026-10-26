@@ -57,6 +57,26 @@ export default function Menu() {
     }
   }
 
+  // Later days in the 7-day strip with nothing planned for this meal; days the cook already planned are left alone.
+  const restOfWeek = Array.from({ length: 7 }, (_, i) => isoDate(i))
+    .filter((d) => d > date && !(all ?? []).some((o) => o.date === d && o.slot === slot));
+
+  async function copyToWeek() {
+    setCopying(true);
+    setNotice(null);
+    try {
+      const r = await api.post<{ created: Offering[]; skipped: number }>('/vendor/offerings/copy', { from_date: date, to_dates: restOfWeek, slot });
+      await load();
+      setNotice(r.created.length
+        ? { ok: true, text: `${t('copiedDishes').en}: ${r.created.length}${r.skipped ? ` · ${t('copySkipped').en}: ${r.skipped}` : ''}` }
+        : { ok: false, text: t('nothingToCopy').en });
+    } catch (e) {
+      setNotice({ ok: false, text: e instanceof ApiError ? (e.status === 404 ? t('nothingToCopy').en : e.detail) : 'Error' });
+    } finally {
+      setCopying(false);
+    }
+  }
+
   if (!me.onboarded) return <Navigate to="/onboarding" replace />;
   return (
     <Page header={<SiteHeader />} narrow title={<Bi k="menu" />}>
@@ -67,7 +87,12 @@ export default function Menu() {
 
       <div className="mt-5 space-y-3">
         <Button size="xl" block onClick={() => setSheet({ editing: null })}><span aria-hidden>＋</span> <Bi k="addDish" /></Button>
-        <Button variant="outline" block loading={copying} onClick={() => void copyYesterday()}><Icon.Copy className="h-5 w-5" /> <Bi k="copyYesterday" /></Button>
+        {all !== null && dishes.length === 0 && (
+          <Button variant="outline" block loading={copying} onClick={() => void copyYesterday()}><Icon.Copy className="h-5 w-5" /> <Bi k="copyYesterday" /></Button>
+        )}
+        {dishes.length > 0 && restOfWeek.length > 0 && (
+          <Button variant="outline" block loading={copying} onClick={() => void copyToWeek()}><Icon.Copy className="h-5 w-5" /> <Bi k="copyToWeek" /> ({restOfWeek.length})</Button>
+        )}
         {notice && <p className={cx('text-center font-semibold', notice.ok ? 'text-leaf-700' : 'text-terracotta-600')} role="status">{notice.text}</p>}
       </div>
 

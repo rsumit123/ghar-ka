@@ -62,7 +62,12 @@ export function PlanSheet({ open, editing, onClose, onSaved }: { open: boolean; 
 
   const b = 'flex h-14 w-14 items-center justify-center rounded-2xl text-3xl font-bold shadow-soft active:scale-95 disabled:opacity-35';
   return (
-    <Modal open={open} onClose={onClose} title={<Bi k={editing ? 'editPlan' : 'addPlan'} />}>
+    <Modal open={open} onClose={onClose} title={<Bi k={editing ? 'editPlan' : 'addPlan'} />} footer={(
+      <>
+        {error && <p className="mb-2 rounded-xl bg-terracotta-50 p-3 font-medium text-terracotta-700" role="alert">{error}</p>}
+        <Button size="xl" block loading={busy} disabled={!canSave} onClick={() => void save()}><Bi k="save" /></Button>
+      </>
+    )}>
       <div className="space-y-6 pb-2">
         <SlotTabs value={slot} onChange={(s) => { setSlot(s); if (hours === nightBefore(slot)) setHours(nightBefore(s)); }} />
 
@@ -130,9 +135,6 @@ export function PlanSheet({ open, editing, onClose, onSaved }: { open: boolean; 
         </section>
 
         <Switch checked={active} onChange={setActive} label={<Bi k={active ? 'planActive' : 'planPaused'} />} hint={active ? undefined : <Bi k="planInactiveNote" only="en" />} />
-
-        {error && <p className="rounded-xl bg-terracotta-50 p-3 font-medium text-terracotta-700" role="alert">{error}</p>}
-        <Button size="xl" block loading={busy} disabled={!canSave} onClick={() => void save()}><Bi k="save" /></Button>
       </div>
     </Modal>
   );

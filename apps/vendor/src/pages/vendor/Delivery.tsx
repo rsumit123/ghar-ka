@@ -60,7 +60,7 @@ export default function Delivery() {
         )}
         {center ? (
           <MapView center={center} markers={[{ id: 'me', ...center }]} circle={delivers ? { center, radiusKm: radius } : undefined}
-            fit={delivers} zoom={15} height={260} />
+            fit={delivers} zoom={15} height={260} static />
         ) : null}
         {noWay ? (
           <p className="rounded-2xl bg-terracotta-50 p-3 font-medium text-terracotta-700" role="alert"><Bi k="needOneWay" /></p>

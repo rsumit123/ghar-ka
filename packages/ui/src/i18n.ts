@@ -157,6 +157,8 @@ const dict = {
   cutoffMorning: { en: 'Morning 10 am', hi: 'सुबह 10 बजे' },
   orderBy: { en: 'Order by', hi: 'ऑर्डर करें' },
   copyYesterday: { en: "Copy yesterday's menu", hi: 'कल का मेन्यू कॉपी करें' },
+  copyToWeek: { en: 'Copy to empty days', hi: 'खाली दिनों में कॉपी करें' },
+  copySkipped: { en: 'skipped', hi: 'छोड़ी गईं' },
   copiedDishes: { en: 'Dishes copied', hi: 'डिश कॉपी हो गईं' },
   nothingToCopy: { en: 'Nothing to copy', hi: 'कॉपी करने को कुछ नहीं' },
   addPhoto: { en: 'Add a photo', hi: 'फोटो जोड़ें' },
