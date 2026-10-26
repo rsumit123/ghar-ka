@@ -447,3 +447,60 @@ def test_put_me_updates_profile(client, cust):
     assert client.put("/api/v1/me", json={"lat": 12.9}).status_code == 422
     assert client.put("/api/v1/me", json={"pincode": "abc"}).status_code == 422
     assert client.put("/api/v1/auth/me", json={"name": "Ravi Z"}).json()["name"] == "Ravi Z"
+
+
+# ---------------------------------------------------------------- bulk vendor actions
+
+BULK = "/api/v1/vendor/orders/bulk"
+
+
+def test_vendor_bulk_accept_happy_path(client, setup, login_as):
+    vendor, dal, _ = setup
+    ids = [_place(client, dal) for _ in range(3)]
+    login_as(vendor.user)
+    r = client.post(BULK, json={"order_ids": ids, "action": "accept"})
+    assert r.status_code == 200, r.text
+    assert [o["id"] for o in r.json()["done"]] == ids and r.json()["failed"] == []
+    assert {o["status"] for o in r.json()["done"]} == {"accepted"}
+    for action, status in [("ready", "ready"), ("complete", "completed")]:
+        r = client.post(BULK, json={"order_ids": ids, "action": action})
+        assert {o["status"] for o in r.json()["done"]} == {status}
+
+
+def test_vendor_bulk_mixed_batch_isolates_failures(client, db, setup, login_as):
+    vendor, dal, _ = setup
+    a, b, c = (_place(client, dal) for _ in range(3))
+    login_as(vendor.user)
+    client.post(f"/api/v1/vendor/orders/{b}/cancel", json={"reason": "Out of gas"})
+    r = client.post(BULK, json={"order_ids": [a, b, c], "action": "accept"})
+    assert r.status_code == 200
+    out = r.json()
+    assert [o["id"] for o in out["done"]] == [a, c]
+    assert [f["id"] for f in out["failed"]] == [b] and "cancelled" in out["failed"][0]["detail"]
+    db.expire_all()
+    assert [db.get(Order, i).status for i in (a, b, c)] == [OrderStatus.accepted, OrderStatus.cancelled, OrderStatus.accepted]
+
+
+def test_vendor_bulk_other_vendors_order_fails_without_leak(client, db, setup, make_vendor, login_as):
+    vendor, dal, _ = setup
+    mine = _place(client, dal)
+    other = make_vendor(name="Other", lat=13.0, lng=77.6)
+    login_as(other.user)
+    r = client.post(BULK, json={"order_ids": [mine, 99999], "action": "accept"})
+    assert r.status_code == 200 and r.json()["done"] == []
+    assert r.json()["failed"] == [{"id": mine, "detail": "Order not found"}, {"id": 99999, "detail": "Order not found"}]
+    db.expire_all()
+    assert db.get(Order, mine).status == OrderStatus.placed
+
+
+def test_vendor_bulk_validation_and_role(client, setup, login_as):
+    vendor, dal, _ = setup
+    oid = _place(client, dal)
+    assert client.post(BULK, json={"order_ids": [oid], "action": "accept"}).status_code == 403  # customer
+    login_as(vendor.user)
+    assert client.post(BULK, json={"order_ids": [], "action": "accept"}).status_code == 422
+    assert client.post(BULK, json={"order_ids": [oid], "action": "cancel"}).status_code == 422
+    assert client.post(BULK, json={"order_ids": [oid, oid], "action": "accept"}).status_code == 422
+    assert client.post(BULK, json={"order_ids": list(range(1, 102)), "action": "accept"}).status_code == 422
+    client.cookies.clear()
+    assert client.post(BULK, json={"order_ids": [oid], "action": "accept"}).status_code == 401

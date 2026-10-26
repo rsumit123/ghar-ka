@@ -7,7 +7,7 @@ from sqlalchemy import and_, select
 
 from app.deps import DbDep, require_role
 from app.models import MenuOffering, Order, OrderStatus, PaymentMethod, PaymentStatus, Role, User
-from app.schemas.order import VendorCancelIn
+from app.schemas.order import VendorBulkIn, VendorCancelIn
 from app.services import clock, order_views, orders, payments
 from app.services.subscriptions import materialize_subscription_orders
 from app.services.menu import slot_rank
@@ -68,6 +68,24 @@ def list_orders(user: VendorUser, db: DbDep, date: date | None = None):
             for o in dishes
         ],
     }
+
+
+_BULK_TARGET = {"accept": OrderStatus.accepted, "ready": OrderStatus.ready, "complete": OrderStatus.completed}
+
+
+@router.post("/bulk")
+def bulk(body: VendorBulkIn, user: VendorUser, db: DbDep):
+    """Move many orders one step (e.g. all tiffins of a meal). Each order is its own transaction:
+    change_status commits on success and rolls back on failure, so one bad order never blocks the rest."""
+    vendor = _vendor(db, user)
+    done: list[dict] = []
+    failed: list[dict] = []
+    for oid in body.order_ids:
+        try:
+            done.append(_run(db, vendor, oid, _BULK_TARGET[body.action]))
+        except HTTPException as e:
+            failed.append({"id": oid, "detail": e.detail})
+    return {"done": done, "failed": failed}
 
 
 @router.post("/{order_id}/accept")

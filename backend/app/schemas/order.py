@@ -50,6 +50,18 @@ class VendorCancelIn(BaseModel):
     reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=300)]
 
 
+class VendorBulkIn(BaseModel):
+    order_ids: list[int] = Field(min_length=1, max_length=100)
+    action: Literal["accept", "ready", "complete"]
+
+    @field_validator("order_ids")
+    @classmethod
+    def _unique(cls, v: list[int]) -> list[int]:
+        if len(v) != len(set(v)):
+            raise ValueError("Each order can appear only once")
+        return v
+
+
 class ProfileUpdateIn(BaseModel):
     """PUT /me for customers: only the fields sent are changed."""
 

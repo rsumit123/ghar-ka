@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { Navigate } from 'react-router-dom';
 import { SiteHeader } from '../../components/SiteHeader';
 import { DateStrip } from '../../components/vendor/DateStrip';
+import { SlotTabs } from '../../components/vendor/SlotTabs';
 import { VendorTabs } from '../../components/vendor/VendorTabs';
 import { clockTime, dateLong, isoDate, rupees } from '../../lib/dates';
 import type { OrderStatus, OrdersResponse, Slot, VendorOrder } from '../../lib/types';
@@ -32,6 +33,25 @@ const HANDOVER: Record<Handover, { k: DictKey; icon: ReactNode }> = {
 };
 const REASONS: DictKey[] = ['reasonOutOfStock', 'reasonUnwell', 'reasonTooFar', 'reasonOther'];
 const isActive = (o: VendorOrder) => o.status === 'placed' || o.status === 'accepted' || o.status === 'ready';
+const LUNCH_UNTIL_HOUR = 15;
+const ACTIVE_ORDER: OrderStatus[] = ['placed', 'accepted', 'ready'];
+type BulkResult = { done: VendorOrder[]; failed: { id: number; detail: string }[] };
+
+/** Button step and badge for an order's status, worded for how the food leaves the kitchen. */
+function stepOf(status: OrderStatus, how: Handover) {
+  const step = NEXT[status];
+  const next = step && { ...step, k: status === 'accepted' ? READY_BUTTON[how] : status === 'ready' ? DONE_BUTTON[how] : step.k };
+  const st = { ...STATUS[status], k: status === 'ready' ? READY_STATUS[how] : status === 'completed' ? DONE_STATUS[how] : STATUS[status].k };
+  return { next, st };
+}
+
+/** Only one meal has active orders -> that one; otherwise lunch until mid-afternoon, then dinner. */
+function defaultSlot(orders: VendorOrder[]): Slot {
+  const lunch = orders.some((o) => o.slot === 'lunch' && isActive(o));
+  const dinner = orders.some((o) => o.slot === 'dinner' && isActive(o));
+  if (lunch !== dinner) return lunch ? 'lunch' : 'dinner';
+  return new Date().getHours() < LUNCH_UNTIL_HOUR ? 'lunch' : 'dinner';
+}
 
 export default function Orders() {
   const { me } = useVendor();
@@ -40,6 +60,7 @@ export default function Orders() {
   const [error, setError] = useState<string | null>(null);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [cancelling, setCancelling] = useState<VendorOrder | null>(null);
+  const [slot, setSlot] = useState<Slot | null>(null);
   const dateRef = useRef(date);
   dateRef.current = date;
 
@@ -64,6 +85,10 @@ export default function Orders() {
     for (const o of data?.orders ?? []) out[o.slot].push(o);
     return out;
   }, [data]);
+  const activeCounts = { lunch: bySlot.lunch.filter(isActive).length, dinner: bySlot.dinner.filter(isActive).length };
+  // Pick once, from the first data we see; refreshes and date changes keep the cook's meal.
+  useEffect(() => { if (slot === null && data) setSlot(defaultSlot(data.orders)); }, [slot, data]);
+  const shown = slot ?? (data ? defaultSlot(data.orders) : 'lunch');
 
   if (!me.onboarded) return <Navigate to="/onboarding" replace />;
   return (
@@ -80,11 +105,10 @@ export default function Orders() {
       {error ? <p className="mt-6 text-terracotta-600" role="alert">{error}</p>
         : data === null ? <div className="flex justify-center py-12"><Spinner className="h-8 w-8" /></div>
         : (
-          <div className="mt-4 space-y-8">
-            {(['lunch', 'dinner'] as const).map((slot) => (
-              <SlotSection key={slot} slot={slot} orders={bySlot[slot]} summary={data.summary.filter((s) => s.slot === slot)}
-                onChanged={() => load(date, true)} onCancel={setCancelling} />
-            ))}
+          <div className="mt-4 space-y-4">
+            <SlotTabs value={shown} onChange={setSlot} counts={activeCounts} />
+            <SlotSection slot={shown} orders={bySlot[shown]} summary={data.summary.filter((s) => s.slot === shown)}
+              onChanged={() => load(date, true)} onCancel={setCancelling} />
           </div>
         )}
 
@@ -98,16 +122,19 @@ function SlotSection({ slot, orders, summary, onChanged, onCancel }: {
 }) {
   const active = orders.filter(isActive);
   const finished = orders.filter((o) => !isActive(o));
+  const single = active.filter((o) => !o.is_tiffin);
+  const m = new Map<string, VendorOrder[]>();
+  for (const o of active.filter((x) => x.is_tiffin)) {
+    const key = `${o.status}:${handover(o)}`;
+    m.set(key, [...(m.get(key) ?? []), o]);
+  }
+  const groups = ACTIVE_ORDER.flatMap((st) => [...m.entries()].filter(([k]) => k.startsWith(`${st}:`)).map(([k, list]) => ({ key: k, list })));
   return (
     <section aria-label={t(slot).en}>
-      <h2 className="mb-2 flex items-center gap-2 font-serif text-2xl font-bold">
-        {slot === 'lunch' ? <Icon.Sun className="h-6 w-6" /> : <Icon.Moon className="h-6 w-6" />}<Bi k={slot} />
-        {active.length > 0 && <span className="rounded-full bg-terracotta-500 px-2.5 py-0.5 font-sans text-sm text-white">{active.length}</span>}
-      </h2>
       {summary.length > 0 && (
-        <ul className="mb-3 flex flex-wrap gap-2" aria-label={t('summaryToday').en}>
+        <ul className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" aria-label={t('summaryToday').en}>
           {summary.map((s) => (
-            <li key={s.offering_id} className={cx('rounded-full px-3.5 py-1.5 text-base font-semibold ring-1', s.sold >= s.total ? 'bg-terracotta-50 text-terracotta-700 ring-terracotta-200' : 'bg-white text-ink ring-cream-300')}>
+            <li key={s.offering_id} className={cx('shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-base font-semibold ring-1', s.sold >= s.total ? 'bg-terracotta-50 text-terracotta-700 ring-terracotta-200' : 'bg-white text-ink ring-cream-300')}>
               {s.dish_name}: {s.sold} <Bi k="of" only="en" /> {s.total} <Bi k="soldCount" only="en" />
             </li>
           ))}
@@ -115,7 +142,10 @@ function SlotSection({ slot, orders, summary, onChanged, onCancel }: {
       )}
       {orders.length === 0 ? <Card><EmptyState title={<Bi k="noOrders" />} illustration={<span className="text-5xl" aria-hidden>🍽️</span>} /></Card> : (
         <div className="space-y-4">
-          {active.map((o) => <OrderCard key={o.id} o={o} onChanged={onChanged} onCancel={onCancel} />)}
+          {single.map((o) => <OrderCard key={o.id} o={o} onChanged={onChanged} onCancel={onCancel} />)}
+          {groups.map((g) => (g.list.length === 1
+            ? <OrderCard key={g.key} o={g.list[0]} onChanged={onChanged} onCancel={onCancel} />
+            : <TiffinGroupCard key={g.key} orders={g.list} onChanged={onChanged} onCancel={onCancel} />))}
           {finished.length > 0 && (
             <details className="rounded-2xl border border-cream-200 bg-white/50 p-3">
               <summary className="min-h-10 cursor-pointer text-base font-semibold text-ink-soft">
@@ -130,13 +160,105 @@ function SlotSection({ slot, orders, summary, onChanged, onCancel }: {
   );
 }
 
+const waLink = (o: VendorOrder) => `https://wa.me/${o.customer.whatsapp_digits}?text=${encodeURIComponent(`Hi ${o.customer.name || ''}, this is ${brand.name} about your order #${o.id}.`)}`;
+const mapLink = (o: VendorOrder) => (o.lat != null && o.lng != null ? `https://www.openstreetmap.org/?mlat=${o.lat}&mlon=${o.lng}#map=18/${o.lat}/${o.lng}` : null);
+
+/** Icon-only call + WhatsApp buttons. */
+function ContactButtons({ o }: { o: VendorOrder }) {
+  if (!o.customer.phone || o.status === 'cancelled') return null;
+  return (
+    <div className="flex shrink-0 items-center gap-1.5">
+      <a href={`tel:${o.customer.phone}`} aria-label={t('call').en} className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-ink/20 bg-white"><Icon.Phone className="h-5 w-5" /></a>
+      <a href={waLink(o)} target="_blank" rel="noopener noreferrer" aria-label={t('whatsapp').en}
+        className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-leaf-500 bg-white text-leaf-700"><Icon.Chat className="h-5 w-5" /></a>
+    </div>
+  );
+}
+
+/** All tiffins of one meal in the same state and handover, moved together with one tap. */
+function TiffinGroupCard({ orders, onChanged, onCancel }: { orders: VendorOrder[]; onChanged: () => void; onCancel: (o: VendorOrder) => void }) {
+  const [busy, setBusy] = useState<number | 'all' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const first = orders[0];
+  const how = handover(first);
+  const { next, st } = stepOf(first.status, how);
+  const dishes = [...orders.flatMap((o) => o.items).reduce((m, i) => m.set(i.name, (m.get(i.name) ?? 0) + i.qty), new Map<string, number>())];
+
+  async function run(ids: number[], who: number | 'all') {
+    if (!next) return;
+    setBusy(who);
+    setError(null);
+    try {
+      const r = await api.post<BulkResult>('/vendor/orders/bulk', { order_ids: ids, action: next.action });
+      if (r.failed.length) setError(`${r.failed.length} ${t('couldntUpdate').en}: ${r.failed[0].detail}`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.detail : 'Error');
+    } finally {
+      setBusy(null);
+      onChanged();
+    }
+  }
+
+  return (
+    <article className={cx('rounded-3xl border-2 bg-white p-4 shadow-soft', first.status === 'placed' ? 'border-terracotta-300' : 'border-cream-200')}>
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 text-2xl font-bold leading-tight">
+          <span className="whitespace-nowrap"><Bi k="tiffinsTitle" /></span>
+          <span className="shrink-0 rounded-full bg-turmeric-100 px-2.5 py-0.5 font-sans text-base tabular-nums">{orders.length}</span>
+        </h3>
+        <Badge tone={st.tone} className="shrink-0 px-3 py-1 text-sm"><Bi k={st.k} /></Badge>
+      </header>
+      <ul className="mt-3 space-y-0.5 text-xl">
+        {dishes.map(([name, qty]) => <li key={name}><strong className="tabular-nums">{qty} ×</strong> {name}</li>)}
+      </ul>
+      <p className="mt-2 inline-flex items-center gap-1.5 text-base font-bold">{HANDOVER[how].icon} <Bi k={HANDOVER[how].k} /></p>
+
+      {error && <p className="mt-2 font-medium text-terracotta-600" role="alert">{error}</p>}
+      {next && (
+        <button type="button" disabled={busy !== null} onClick={() => void run(orders.map((o) => o.id), 'all')}
+          className={cx('mt-3 flex min-h-[4.25rem] w-full items-center justify-center gap-2.5 rounded-2xl px-3 text-xl font-bold leading-tight shadow-soft transition active:scale-[.98] disabled:opacity-60', next.cls)}>
+          {busy === 'all' ? <Spinner className="h-6 w-6" /> : <><span><Bi k={next.k} /></span><span className="shrink-0 rounded-full bg-black/10 px-2.5 py-0.5 tabular-nums"><Bi k="allN" only="en" /> {orders.length}</span></>}
+        </button>
+      )}
+
+      <details className="mt-3">
+        <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink-soft"><Bi k="showCustomers" /> ({orders.length})</summary>
+        <ul className="divide-y divide-cream-200">
+          {orders.map((o) => {
+            const map = mapLink(o);
+            return (
+              <li key={o.id} className="py-2.5">
+                <div className="flex items-center gap-2">
+                  <p className="min-w-0 flex-1 truncate text-lg font-bold">{o.customer.name || o.customer.phone}</p>
+                  <ContactButtons o={o} />
+                </div>
+                {o.fulfilment === 'delivery' && o.delivery_address && (
+                  <p className="mt-0.5 text-base text-ink-soft">{o.delivery_address}{map && <> · <a href={map} target="_blank" rel="noopener noreferrer" className="font-semibold text-leaf-700 underline">Map</a></>}</p>
+                )}
+                <div className="mt-1.5 flex items-center justify-between gap-2">
+                  {next && (
+                    <button type="button" disabled={busy !== null} onClick={() => void run([o.id], o.id)}
+                      className={cx('flex min-h-11 items-center justify-center whitespace-nowrap rounded-xl px-4 text-base font-bold transition active:scale-[.98] disabled:opacity-60', next.cls)}>
+                      {/* English only here: the big button above carries both languages, and both don't fit a phone row */}
+                      {busy === o.id ? <Spinner className="h-5 w-5" /> : <Bi k={next.k} only="en" />}
+                    </button>
+                  )}
+                  <button type="button" className="min-h-11 shrink-0 whitespace-nowrap px-2 text-base font-semibold text-terracotta-600 underline" onClick={() => onCancel(o)}><Bi k="cancel" only="en" /></button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </details>
+    </article>
+  );
+}
+
 function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () => void; onCancel: (o: VendorOrder) => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const how = handover(o);
-  const step = NEXT[o.status];
-  const next = step && { ...step, k: o.status === 'accepted' ? READY_BUTTON[how] : o.status === 'ready' ? DONE_BUTTON[how] : step.k };
-  const st = { ...STATUS[o.status], k: o.status === 'ready' ? READY_STATUS[how] : o.status === 'completed' ? DONE_STATUS[how] : STATUS[o.status].k };
+  const { next, st } = stepOf(o.status, how);
 
   async function advance() {
     if (!next) return;
@@ -153,19 +275,19 @@ function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () =
     }
   }
 
-  const waText = `Hi ${o.customer.name || ''}, this is ${brand.name} about your order #${o.id}.`;
-  const mapUrl = o.lat != null && o.lng != null ? `https://www.openstreetmap.org/?mlat=${o.lat}&mlon=${o.lng}#map=18/${o.lat}/${o.lng}` : null;
+  const mapUrl = mapLink(o);
   return (
     <article className={cx('rounded-3xl border-2 bg-white p-4 shadow-soft', o.status === 'placed' ? 'border-terracotta-300' : 'border-cream-200', !isActive(o) && 'opacity-80')}>
-      <header className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="min-w-0 truncate text-2xl font-bold leading-tight">{o.customer.name || o.customer.phone}</h3>
-            {o.is_tiffin && <Badge tone="turmeric" className="shrink-0 px-3 py-1 text-sm"><Bi k="tiffinBadge" /></Badge>}
-          </div>
-          <p className="text-sm text-ink-muted">#{o.id} · {clockTime(o.created_at)}</p>
+      <header className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-2xl font-bold leading-tight">{o.customer.name || o.customer.phone}</h3>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-muted">
+            <Badge tone={st.tone} className="px-2.5 py-0.5 text-sm"><Bi k={st.k} /></Badge>
+            {o.is_tiffin && <Badge tone="turmeric" className="px-2.5 py-0.5 text-sm"><Bi k="tiffinBadge" /></Badge>}
+            #{o.id} · {clockTime(o.created_at)}
+          </p>
         </div>
-        <Badge tone={st.tone} className="px-3 py-1 text-sm"><Bi k={st.k} /></Badge>
+        <ContactButtons o={o} />
       </header>
 
       <ul className="mt-3 space-y-0.5 text-xl">
@@ -183,14 +305,6 @@ function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () =
         </p>
       </div>
       {o.status === 'cancelled' && o.cancel_reason && <p className="mt-2 text-sm text-ink-muted">{o.cancel_reason}</p>}
-
-      {o.customer.phone && o.status !== 'cancelled' && (
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <a href={`tel:${o.customer.phone}`} className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-ink/20 bg-white font-bold"><Icon.Phone className="h-5 w-5" /><Bi k="call" /></a>
-          <a href={`https://wa.me/${o.customer.whatsapp_digits}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener noreferrer"
-            className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 border-leaf-500 bg-white font-bold text-leaf-700"><Icon.Chat className="h-5 w-5" /><Bi k="whatsapp" /></a>
-        </div>
-      )}
 
       {error && <p className="mt-2 font-medium text-terracotta-600" role="alert">{error}</p>}
       {next && (
