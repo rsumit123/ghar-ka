@@ -16,11 +16,11 @@ export function Modal({ open, onClose, title, children }: {
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 sm:items-center sm:p-4" onMouseDown={onClose}>
-      {/* dvh, not vh: on phones vh counts the hidden address bar, which pushed the title off the top of the screen */}
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 pt-10 sm:items-center sm:p-4" onMouseDown={onClose}>
+      {/* Height comes from the fixed overlay, not vh: on phones vh counts the hidden address bar and pushed the title off screen */}
       <div
         role="dialog" aria-modal="true"
-        className="flex max-h-[92vh] max-h-[92dvh] w-full flex-col rounded-t-3xl bg-cream shadow-lift sm:max-w-md sm:rounded-3xl"
+        className="flex max-h-full w-full flex-col rounded-t-3xl bg-cream shadow-lift sm:max-w-md sm:rounded-3xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex shrink-0 items-center gap-3 border-b border-cream-200 px-5 py-3">
