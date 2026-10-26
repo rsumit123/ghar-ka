@@ -1,4 +1,4 @@
-import { api, ApiError, Bi, brand, Button, cx, type DictKey, DietMark, Icon, Input, mediaUrl, Modal, t } from '@gharka/ui';
+import { api, ApiError, Bi, brand, Button, cx, type DictKey, DietMark, Icon, Input, mediaUrl, Modal, useLang, useT } from '@gharka/ui';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { clockTime, dateLong, dayNum, isoDate, monthShort, weekday } from '../../lib/dates';
 import type { CutoffPreset, Diet, Offering, Slot } from '../../lib/types';
@@ -63,6 +63,8 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
   onSaved: () => void | Promise<void>;
   notify: (msg: string) => void;
 }) {
+  const tt = useT();
+  const [lang] = useLang();
   const [name, setName] = useState('');
   const [price, setPrice] = useState(80);
   const [diet, setDiet] = useState<Diet>('veg');
@@ -188,7 +190,7 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
           form.set('also', ids.slice(1).join(','));
           await uploadWithProgress(`/vendor/offerings/${ids[0]}/photo`, form);
         } catch (e) {
-          notify(`${t('saved').en}. ${e instanceof ApiError ? e.detail : 'Photo upload failed'}`);
+          notify(`${tt('saved')}. ${e instanceof ApiError ? e.detail : 'Photo upload failed'}`);
         }
       }
       await onSaved();
@@ -232,7 +234,7 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
   const presetTime = (p: CutoffPreset) => {
     const c = byDate[firstDay]?.[p];
     if (c === undefined) return null;
-    if (c === null || !c.open) return <span className="font-normal opacity-80">· <Bi k="closed" only="en" /></span>;
+    if (c === null || !c.open) return <span className="font-normal opacity-80">· <Bi k="closed" /></span>;
     const day = new Intl.DateTimeFormat('en-CA', { timeZone: brand.timezone }).format(new Date(c.cutoff_at));
     return <span className="font-normal opacity-80">· {day === firstDay ? '' : `${weekday(day)} `}{clockTime(c.cutoff_at)}</span>;
   };
@@ -245,7 +247,7 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
       {error && <p className="mb-2 rounded-xl bg-terracotta-50 p-3 font-medium text-terracotta-700" role="alert">{error}</p>}
       {!editing && chosen.length === 0 && !allClosedForMeal && <p className="mb-2 text-center text-sm font-medium text-terracotta-600"><Bi k="pickADay" /></p>}
       <Button size="xl" block loading={busy} disabled={!canSave} onClick={() => void save()}>
-        <Bi k="save" />{!editing && chosen.length > 1 ? <span className="ml-1 font-semibold opacity-90">· {chosen.length} <Bi k="days" only="en" /></span> : null}
+        <Bi k="save" />{!editing && chosen.length > 1 ? <span className="ml-1 font-semibold opacity-90">· {chosen.length} <Bi k="days" /></span> : null}
       </Button>
     </>
   );
@@ -277,7 +279,7 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
         )}
 
         <Section n={1} title={!editing && recent.length > 0 ? <Bi k="orNewDish" /> : <Bi k="dishName" />} hint={showChips ? <Bi k="dishNameHint" /> : undefined}>
-          <Input size="lg" value={name} onChange={(e) => setName(e.target.value)} maxLength={160} placeholder="Rajma + Rice + Salad" aria-label={t('dishName').en} />
+          <Input size="lg" value={name} onChange={(e) => setName(e.target.value)} maxLength={160} placeholder="Rajma + Rice + Salad" aria-label={tt('dishName')} />
           {showChips ? (
             <div className="-mx-5 mt-2.5 flex gap-2 overflow-x-auto px-5 pb-1">
               {chips.map((s) => {
@@ -286,7 +288,7 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
                   <button key={s.en} type="button" role="checkbox" aria-checked={on} onClick={() => togglePart(s.en)}
                     className={cx('inline-flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border-2 px-3.5 text-base font-semibold transition',
                       on ? 'border-leaf-500 bg-leaf-500 text-white' : 'border-cream-300 bg-white')}>
-                    {on && <Icon.Check className="h-4 w-4" />}{s.en} <span className="font-devanagari text-sm opacity-75" lang="hi">{s.hi}</span>
+                    {on && <Icon.Check className="h-4 w-4" />}{lang === 'hi' ? <span className="font-devanagari" lang="hi">{s.hi}</span> : s.en}
                   </button>
                 );
               })}
@@ -302,8 +304,7 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
               <button key={d.id} type="button" role="radio" aria-checked={diet === d.id} onClick={() => setDiet(d.id)}
                 className={cx('flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1 text-center font-semibold leading-tight transition',
                   diet === d.id ? 'border-leaf-500 bg-leaf-50' : 'border-cream-300 bg-white')}>
-                <span className="flex items-center gap-1.5"><DietMark diet={d.id} className="h-4 w-4" /><Bi k={d.k} only="en" /></span>
-                <Bi k={d.k} only="hi" className="text-sm text-ink-muted" />
+                <span className="flex items-center gap-1.5"><DietMark diet={d.id} className="h-4 w-4" /><Bi k={d.k} /></span>
               </button>
             ))}
           </div>
@@ -335,9 +336,9 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
                     <button key={d} type="button" role="checkbox" aria-checked={on && !closed} disabled={closed} onClick={() => toggleDay(d)}
                       className={cx('relative flex min-h-16 flex-col items-center justify-center rounded-2xl border-2 leading-tight transition',
                         closed ? 'border-dashed border-cream-300 bg-cream-100 text-ink-muted' : on ? 'border-leaf-500 bg-leaf-500 text-white' : 'border-cream-300 bg-white')}>
-                      <span className="text-sm font-semibold">{i === 0 ? <Bi k="today" only="en" /> : i === 1 ? <Bi k="tomorrow" only="en" /> : weekday(d)}</span>
+                      <span className="text-sm font-semibold">{i === 0 ? <Bi k="today" /> : i === 1 ? <Bi k="tomorrow" /> : weekday(d)}</span>
                       <span className="text-lg font-bold">{dayNum(d)} <span className="text-xs font-semibold opacity-75">{monthShort(d)}</span></span>
-                      {closed && <span className="text-[11px] font-semibold"><Bi k="closed" only="en" /></span>}
+                      {closed && <span className="text-[11px] font-semibold"><Bi k="closed" /></span>}
                     </button>
                   );
                 })}
@@ -360,13 +361,13 @@ export function AddDishSheet({ open, onClose, date, slot: pageSlot, editing, onS
           </div>
         </Section>
 
-        <Section n={7} title={<><Bi k="addPhoto" /> <span className="text-sm font-normal text-ink-muted">(<Bi k="optional" only="en" />)</span></>}>
+        <Section n={7} title={<><Bi k="addPhoto" /> <span className="text-sm font-normal text-ink-muted">(<Bi k="optional" />)</span></>}>
           <div className="flex items-center gap-3">
             {photoSrc ? <img src={photoSrc} alt="" className="h-20 w-20 shrink-0 rounded-2xl object-cover" />
               : <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-turmeric-50 text-3xl" aria-hidden>🍛</div>}
             <div className="grid flex-1 gap-2">
-              <Button variant="outline" block onClick={() => camRef.current?.click()}><Icon.Camera className="h-5 w-5" /> <Bi k="takePhoto" only="en" /></Button>
-              <Button variant="ghost" size="sm" block onClick={() => galRef.current?.click()}><Bi k="fromGallery" only="en" /></Button>
+              <Button variant="outline" block onClick={() => camRef.current?.click()}><Icon.Camera className="h-5 w-5" /> <Bi k="takePhoto" /></Button>
+              <Button variant="ghost" size="sm" block onClick={() => galRef.current?.click()}><Bi k="fromGallery" /></Button>
             </div>
           </div>
           <input ref={camRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { setFile(e.target.files?.[0] ?? null); e.target.value = ''; }} />

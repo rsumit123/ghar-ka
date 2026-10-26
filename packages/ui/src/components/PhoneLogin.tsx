@@ -12,7 +12,6 @@ import { Spinner } from './Spinner';
 type Props = {
   role: 'customer' | 'vendor';
   onSuccess?: (user: User) => void;
-  bilingual?: boolean;
 };
 
 /** Login for customers and cooks: SMS code (AUTH_MODE=otp) or invite-only phone + password (AUTH_MODE=password). */
@@ -29,14 +28,13 @@ export function PhoneLogin(props: Props) {
   return mode === 'password' ? <PasswordLogin {...props} /> : <OtpLogin {...props} />;
 }
 
-function PasswordLogin({ role, onSuccess, bilingual = false }: Props) {
+function PasswordLogin({ role, onSuccess }: Props) {
   const { setUser } = useAuth();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const only = bilingual ? 'both' : 'en';
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -57,25 +55,24 @@ function PasswordLogin({ role, onSuccess, bilingual = false }: Props) {
     <Card className="mx-auto w-full max-w-md">
       <form onSubmit={submit} className="space-y-4">
         <Input
-          label={<Bi k="phone" only={only} />} prefix="+91" size="lg" type="tel" inputMode="numeric"
+          label={<Bi k="phone" />} prefix="+91" size="lg" type="tel" inputMode="numeric"
           autoComplete="username" placeholder="98765 43210" autoFocus value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
         <Input
-          label={<Bi k="password" only={only} />} size="lg" type="password" autoComplete="current-password"
+          label={<Bi k="password" />} size="lg" type="password" autoComplete="current-password"
           value={password} onChange={(e) => setPassword(e.target.value)} error={error}
         />
         <Button type="submit" size="xl" block loading={busy} disabled={phone.replace(/\D/g, '').length < 10 || !password}>
-          <Bi k="login" only={only} />
+          <Bi k="login" />
         </Button>
       </form>
       <div className="mt-4 text-center">
-        <Button variant="ghost" size="sm" onClick={() => setInviteOpen(true)}><Bi k="newHere" only={only} /></Button>
+        <Button variant="ghost" size="sm" onClick={() => setInviteOpen(true)}><Bi k="newHere" /></Button>
       </div>
-      <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={<Bi k="inviteOnlyTitle" only={only} />}>
-        <p className="text-ink-soft"><Bi k="inviteOnlyBody" only={only === 'both' ? 'en' : only} /></p>
-        {bilingual && <p className="mt-2 text-ink-soft"><Bi k="inviteOnlyBody" only="hi" /></p>}
-        <Button className="mt-5" size="lg" block onClick={() => setInviteOpen(false)}><Bi k="ok" only={only} /></Button>
+      <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={<Bi k="inviteOnlyTitle" />}>
+        <p className="text-ink-soft"><Bi k="inviteOnlyBody" /></p>
+        <Button className="mt-5" size="lg" block onClick={() => setInviteOpen(false)}><Bi k="ok" /></Button>
       </Modal>
     </Card>
   );

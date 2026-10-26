@@ -75,14 +75,14 @@ export default function Status() {
         <Card className={cx('flex items-center gap-4', review === 'rejected' && 'border-terracotta-300')}>
           <TiffinIllustration className="h-24 w-20 shrink-0" />
           <div>
-            <Badge tone={h.tone} className="mb-1"><Bi k={h.key} only="en" /></Badge>
+            <Badge tone={h.tone} className="mb-1"><Bi k={h.key} /></Badge>
             <p className="font-serif text-xl font-bold leading-snug"><Bi k={h.key} /></p>
           </div>
         </Card>
 
         {me.review_note && (review === 'rejected' || review === 'suspended') && (
           <Card className="border-terracotta-300 bg-terracotta-50">
-            <p className="font-hand text-xl text-terracotta-700"><Bi k="noteFromTeam" only="en" /></p>
+            <p className="font-hand text-xl text-terracotta-700"><Bi k="noteFromTeam" /></p>
             <p className="mt-1 text-lg">{me.review_note}</p>
           </Card>
         )}

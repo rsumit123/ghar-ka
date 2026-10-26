@@ -41,7 +41,7 @@ export default function Delivery() {
         <Card>
           <label htmlFor="radius" className="block text-lg font-semibold"><Bi k="deliveryDistance" /></label>
           <p className={`my-2 font-serif font-bold text-leaf-700 ${radius === 0 ? 'text-2xl' : 'text-3xl'}`}>
-            {radius === 0 ? <Bi k="noDelivery" /> : <>{radius} <span className="text-xl"><Bi k="km" only="en" /></span></>}
+            {radius === 0 ? <Bi k="noDelivery" /> : <>{radius} <span className="text-xl"><Bi k="km" /></span></>}
           </p>
           <input
             id="radius" type="range" min={0} max={10} step={0.5} value={radius} onChange={(e) => setRadius(Number(e.target.value))}

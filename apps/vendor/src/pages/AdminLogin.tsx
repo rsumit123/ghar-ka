@@ -1,4 +1,4 @@
-import { ApiError, Bi, Button, Card, Input, Page, api, useAuth, type User } from '@gharka/ui';
+import { ApiError, Button, Card, Input, Page, api, t, useAuth, type User } from '@gharka/ui';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SiteHeader } from '../components/SiteHeader';
@@ -30,14 +30,14 @@ export default function AdminLogin() {
   }
 
   return (
-    <Page header={<SiteHeader />} narrow title={<Bi k="adminLogin" only="en" />}>
+    <Page header={<SiteHeader />} narrow title={t('adminLogin').en}>
       <Card>
         <form onSubmit={submit} className="space-y-4">
-          <Input label={<Bi k="email" only="en" />} type="email" autoComplete="username" value={email}
+          <Input label={t('email').en} type="email" autoComplete="username" value={email}
             onChange={(e) => setEmail(e.target.value)} required />
-          <Input label={<Bi k="password" only="en" />} type="password" autoComplete="current-password" value={password}
+          <Input label={t('password').en} type="password" autoComplete="current-password" value={password}
             onChange={(e) => setPassword(e.target.value)} error={error} required />
-          <Button type="submit" size="lg" block loading={busy}><Bi k="login" only="en" /></Button>
+          <Button type="submit" size="lg" block loading={busy}>{t('login').en}</Button>
         </form>
       </Card>
     </Page>

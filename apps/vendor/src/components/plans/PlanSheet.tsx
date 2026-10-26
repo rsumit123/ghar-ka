@@ -1,4 +1,4 @@
-import { ApiError, Bi, Button, DietMark, Input, Modal, Switch, api, cx, t, type DictKey } from '@gharka/ui';
+import { ApiError, Bi, Button, DietMark, Input, Modal, Switch, api, cx, t, type DictKey, useT } from '@gharka/ui';
 import { useEffect, useState } from 'react';
 import type { Diet, Plan, Slot } from '../../lib/types';
 import { SlotTabs } from '../vendor/SlotTabs';
@@ -27,6 +27,7 @@ const chip = (on: boolean) => cx('inline-flex min-h-12 items-center justify-cent
 
 /** Add / edit a tiffin plan with taps instead of typing. */
 export function PlanSheet({ open, editing, onClose, onSaved }: { open: boolean; editing: Plan | null; onClose: () => void; onSaved: () => void | Promise<void> }) {
+  const tt = useT();
   const [name, setName] = useState('');
   const [nameTouched, setNameTouched] = useState(false);
   const [slot, setSlot] = useState<Slot>('lunch');
@@ -88,15 +89,14 @@ export function PlanSheet({ open, editing, onClose, onSaved }: { open: boolean; 
   const daysSec = (
     <section>
       <p className="mb-2 text-lg font-bold"><Bi k="planDays" /></p>
-      <div className="grid grid-cols-7 gap-1" role="group" aria-label={t('planDays').en}>
+      <div className="grid grid-cols-7 gap-1" role="group" aria-label={tt('planDays')}>
         {WEEKDAY_KEYS.map((k, d) => {
           const on = days.includes(d);
           return (
             <button key={k} type="button" aria-pressed={on} onClick={() => toggleDay(d)}
               className={cx('flex min-h-16 flex-col items-center justify-center rounded-2xl border-2 px-0 text-sm font-bold transition active:scale-95',
                 on ? 'border-leaf-500 bg-leaf-500 text-white shadow-soft' : 'border-cream-300 bg-white text-ink-muted')}>
-              <span><Bi k={k} only="en" /></span>
-              <span className="font-devanagari text-xs font-semibold opacity-80" lang="hi"><Bi k={k} only="hi" /></span>
+              <Bi k={k} />
             </button>
           );
         })}
@@ -119,18 +119,17 @@ export function PlanSheet({ open, editing, onClose, onSaved }: { open: boolean; 
       <div className="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1">
         {QUICK_PRICES.map((p) => <button key={p} type="button" className={cx(chip(price === p), 'shrink-0')} onClick={() => setPrice(p)}>₹{p}</button>)}
       </div>
-      {days.length > 0 && <p className="mt-2 text-center text-sm text-ink-muted">{days.length} <Bi k="mealsAWeek" only="en" /> · about ₹{perMeal} each</p>}
+      {days.length > 0 && <p className="mt-2 text-center text-sm text-ink-muted">{days.length} <Bi k="mealsAWeek" /> · about ₹{perMeal} each</p>}
     </section>
   );
 
   const dietSec = (
     <section>
       <p className="mb-2 text-lg font-bold"><Bi k="foodType" /></p>
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('foodType').en}>
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={tt('foodType')}>
         {DIETS.map((d) => (
           <button key={d.id} type="button" role="radio" aria-checked={diet === d.id} onClick={() => setDiet(d.id)} className={seg(diet === d.id)}>
-            <span className="flex items-center gap-1.5"><DietMark diet={d.id} className="h-4 w-4" /><Bi k={d.k} only="en" /></span>
-            <Bi k={d.k} only="hi" className="text-sm text-ink-muted" />
+            <span className="flex items-center gap-1.5"><DietMark diet={d.id} className="h-4 w-4" /><Bi k={d.k} /></span>
           </button>
         ))}
       </div>
@@ -140,7 +139,7 @@ export function PlanSheet({ open, editing, onClose, onSaved }: { open: boolean; 
   const nameSec = (
     <section>
       <p className="mb-2 text-lg font-bold"><Bi k="planName" /></p>
-      <Input size="lg" value={name} onChange={(e) => { setName(e.target.value); setNameTouched(e.target.value !== ''); }} maxLength={160} placeholder="Weekday lunch" aria-label={t('planName').en} />
+      <Input size="lg" value={name} onChange={(e) => { setName(e.target.value); setNameTouched(e.target.value !== ''); }} maxLength={160} placeholder="Weekday lunch" aria-label={tt('planName')} />
     </section>
   );
 
@@ -148,18 +147,17 @@ export function PlanSheet({ open, editing, onClose, onSaved }: { open: boolean; 
   const cutoffSec = (
     <section>
       <p className="mb-2 text-lg font-bold"><Bi k="skipUntil" /></p>
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('skipUntil').en}>
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={tt('skipUntil')}>
         {cutoffs.map((c) => (
           <button key={c.h} type="button" role="radio" aria-checked={hours === c.h} onClick={() => setHours(c.h)} className={seg(hours === c.h)}>
-            <Bi k={c.k} only="en" className="text-base" />
-            <Bi k={c.k} only="hi" className="text-sm text-ink-muted" />
+            <Bi k={c.k} className="text-base" />
           </button>
         ))}
       </div>
     </section>
   );
 
-  const activeSec = <Switch checked={active} onChange={setActive} label={<Bi k={active ? 'planActive' : 'planPaused'} />} hint={active ? undefined : <Bi k="planInactiveNote" only="en" />} />;
+  const activeSec = <Switch checked={active} onChange={setActive} label={<Bi k={active ? 'planActive' : 'planPaused'} />} hint={active ? undefined : <Bi k="planInactiveNote" />} />;
 
   return (
     <Modal open={open} onClose={onClose} title={<Bi k={editing ? 'editPlan' : 'addPlan'} />} footer={(

@@ -35,14 +35,16 @@ export default function Cart() {
 
       <ul className="mt-4 divide-y divide-cream-200 rounded-2xl border border-cream-200 bg-white/85 shadow-soft">
         {cart.lines.map((l) => (
-          <li key={l.offeringId} className="flex items-center gap-3 p-3.5">
+          <li key={l.offeringId} className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-2 p-3.5 sm:grid-cols-[auto_1fr_auto_4rem] sm:items-center">
             <DietMark diet={l.diet} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold">{l.name}</p>
+            <div className="min-w-0">
+              <p className="line-clamp-2 break-words font-semibold">{l.name}</p>
               <p className="text-sm text-ink-muted">{rupees(l.price)} each</p>
             </div>
-            <Stepper value={l.qty} onChange={(n) => setQty(l.offeringId, n)} max={Math.min(MAX_QTY, l.max)} label={l.name} />
-            <p className="w-16 text-right font-semibold tabular-nums">{rupees(l.price * l.qty)}</p>
+            <div className="col-start-2 flex items-center justify-between sm:contents">
+              <Stepper value={l.qty} onChange={(n) => setQty(l.offeringId, n)} max={Math.min(MAX_QTY, l.max)} label={l.name} />
+              <p className="text-right font-semibold tabular-nums sm:w-16">{rupees(l.price * l.qty)}</p>
+            </div>
           </li>
         ))}
       </ul>

@@ -1,4 +1,4 @@
-import { api, ApiError, Badge, type BadgeTone, Bi, brand, Button, Card, cx, type DictKey, EmptyState, Icon, Input, Modal, Page, Spinner, t } from '@gharka/ui';
+import { api, ApiError, Badge, type BadgeTone, Bi, brand, Button, Card, cx, type DictKey, EmptyState, Icon, Input, Modal, Page, Spinner, t, useT } from '@gharka/ui';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SiteHeader } from '../../components/SiteHeader';
@@ -96,9 +96,9 @@ export default function Orders() {
       <VendorTabs />
       <DateStrip value={date} onChange={setDate} from={-1} />
       <div className="mt-2 flex items-center justify-between text-sm text-ink-muted">
-        <span>{dateLong(date)} · <Bi k="autoRefresh" only="en" /></span>
+        <span>{dateLong(date)} · <Bi k="autoRefresh" /></span>
         <button type="button" className="min-h-10 px-2 font-semibold text-leaf-700 underline" onClick={() => void load(date, true)}>
-          ↻ <Bi k="refresh" only="en" />{updated ? ` (${clockTime(updated.toISOString())})` : ''}
+          ↻ <Bi k="refresh" />{updated ? ` (${clockTime(updated.toISOString())})` : ''}
         </button>
       </div>
 
@@ -120,6 +120,7 @@ export default function Orders() {
 function SlotSection({ slot, orders, summary, onChanged, onCancel }: {
   slot: Slot; orders: VendorOrder[]; summary: OrdersResponse['summary']; onChanged: () => void; onCancel: (o: VendorOrder) => void;
 }) {
+  const tt = useT();
   const active = orders.filter(isActive);
   const finished = orders.filter((o) => !isActive(o));
   const single = active.filter((o) => !o.is_tiffin);
@@ -130,12 +131,12 @@ function SlotSection({ slot, orders, summary, onChanged, onCancel }: {
   }
   const groups = ACTIVE_ORDER.flatMap((st) => [...m.entries()].filter(([k]) => k.startsWith(`${st}:`)).map(([k, list]) => ({ key: k, list })));
   return (
-    <section aria-label={t(slot).en}>
+    <section aria-label={tt(slot)}>
       {summary.length > 0 && (
-        <ul className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" aria-label={t('summaryToday').en}>
+        <ul className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" aria-label={tt('summaryToday')}>
           {summary.map((s) => (
             <li key={s.offering_id} className={cx('shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-base font-semibold ring-1', s.sold >= s.total ? 'bg-terracotta-50 text-terracotta-700 ring-terracotta-200' : 'bg-white text-ink ring-cream-300')}>
-              {s.dish_name}: {s.sold} <Bi k="of" only="en" /> {s.total} <Bi k="soldCount" only="en" />
+              {s.dish_name}: {s.sold} <Bi k="of" /> {s.total} <Bi k="soldCount" />
             </li>
           ))}
         </ul>
@@ -149,7 +150,7 @@ function SlotSection({ slot, orders, summary, onChanged, onCancel }: {
           {finished.length > 0 && (
             <details className="rounded-2xl border border-cream-200 bg-white/50 p-3">
               <summary className="min-h-10 cursor-pointer text-base font-semibold text-ink-soft">
-                <Bi k="statusCompleted" only="en" /> / <Bi k="statusCancelled" only="en" /> ({finished.length})
+                <Bi k="statusCompleted" /> / <Bi k="statusCancelled" /> ({finished.length})
               </summary>
               <div className="mt-3 space-y-3">{finished.map((o) => <OrderCard key={o.id} o={o} onChanged={onChanged} onCancel={onCancel} />)}</div>
             </details>
@@ -165,11 +166,12 @@ const mapLink = (o: VendorOrder) => (o.lat != null && o.lng != null ? `https://w
 
 /** Icon-only call + WhatsApp buttons. */
 function ContactButtons({ o }: { o: VendorOrder }) {
+  const tt = useT();
   if (!o.customer.phone || o.status === 'cancelled') return null;
   return (
     <div className="flex shrink-0 items-center gap-1.5">
-      <a href={`tel:${o.customer.phone}`} aria-label={t('call').en} className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-ink/20 bg-white"><Icon.Phone className="h-5 w-5" /></a>
-      <a href={waLink(o)} target="_blank" rel="noopener noreferrer" aria-label={t('whatsapp').en}
+      <a href={`tel:${o.customer.phone}`} aria-label={tt('call')} className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-ink/20 bg-white"><Icon.Phone className="h-5 w-5" /></a>
+      <a href={waLink(o)} target="_blank" rel="noopener noreferrer" aria-label={tt('whatsapp')}
         className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-leaf-500 bg-white text-leaf-700"><Icon.Chat className="h-5 w-5" /></a>
     </div>
   );
@@ -177,6 +179,7 @@ function ContactButtons({ o }: { o: VendorOrder }) {
 
 /** All tiffins of one meal in the same state and handover, moved together with one tap. */
 function TiffinGroupCard({ orders, onChanged, onCancel }: { orders: VendorOrder[]; onChanged: () => void; onCancel: (o: VendorOrder) => void }) {
+  const tt = useT();
   const [busy, setBusy] = useState<number | 'all' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const first = orders[0];
@@ -190,7 +193,7 @@ function TiffinGroupCard({ orders, onChanged, onCancel }: { orders: VendorOrder[
     setError(null);
     try {
       const r = await api.post<BulkResult>('/vendor/orders/bulk', { order_ids: ids, action: next.action });
-      if (r.failed.length) setError(`${r.failed.length} ${t('couldntUpdate').en}: ${r.failed[0].detail}`);
+      if (r.failed.length) setError(`${r.failed.length} ${tt('couldntUpdate')}: ${r.failed[0].detail}`);
     } catch (e) {
       setError(e instanceof ApiError ? e.detail : 'Error');
     } finally {
@@ -217,7 +220,7 @@ function TiffinGroupCard({ orders, onChanged, onCancel }: { orders: VendorOrder[
       {next && (
         <button type="button" disabled={busy !== null} onClick={() => void run(orders.map((o) => o.id), 'all')}
           className={cx('mt-3 flex min-h-[4.25rem] w-full items-center justify-center gap-2.5 rounded-2xl px-3 text-xl font-bold leading-tight shadow-soft transition active:scale-[.98] disabled:opacity-60', next.cls)}>
-          {busy === 'all' ? <Spinner className="h-6 w-6" /> : <><span><Bi k={next.k} /></span><span className="shrink-0 rounded-full bg-black/10 px-2.5 py-0.5 tabular-nums"><Bi k="allN" only="en" /> {orders.length}</span></>}
+          {busy === 'all' ? <Spinner className="h-6 w-6" /> : <><span><Bi k={next.k} /></span><span className="shrink-0 rounded-full bg-black/10 px-2.5 py-0.5 tabular-nums"><Bi k="allN" /> {orders.length}</span></>}
         </button>
       )}
 
@@ -240,10 +243,10 @@ function TiffinGroupCard({ orders, onChanged, onCancel }: { orders: VendorOrder[
                     <button type="button" disabled={busy !== null} onClick={() => void run([o.id], o.id)}
                       className={cx('flex min-h-11 items-center justify-center whitespace-nowrap rounded-xl px-4 text-base font-bold transition active:scale-[.98] disabled:opacity-60', next.cls)}>
                       {/* English only here: the big button above carries both languages, and both don't fit a phone row */}
-                      {busy === o.id ? <Spinner className="h-5 w-5" /> : <Bi k={next.k} only="en" />}
+                      {busy === o.id ? <Spinner className="h-5 w-5" /> : <Bi k={next.k} />}
                     </button>
                   )}
-                  <button type="button" className="min-h-11 shrink-0 whitespace-nowrap px-2 text-base font-semibold text-terracotta-600 underline" onClick={() => onCancel(o)}><Bi k="cancel" only="en" /></button>
+                  <button type="button" className="min-h-11 shrink-0 whitespace-nowrap px-2 text-base font-semibold text-terracotta-600 underline" onClick={() => onCancel(o)}><Bi k="cancel" /></button>
                 </div>
               </li>
             );
@@ -299,7 +302,7 @@ function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () =
         {o.fulfilment === 'delivery' && o.delivery_address && (
           <p className="mt-0.5">{o.delivery_address}{mapUrl && <> · <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-leaf-700 underline">Map</a></>}</p>
         )}
-        {o.note && <p className="mt-1.5 font-serif italic"><span className="not-italic font-semibold"><Bi k="customerNote" only="en" />:</span> “{o.note}”</p>}
+        {o.note && <p className="mt-1.5 font-serif italic"><span className="not-italic font-semibold"><Bi k="customerNote" />:</span> “{o.note}”</p>}
         <p className="mt-1.5 text-sm font-semibold text-ink-soft">
           {rupees(o.total)} · {o.payment_method === 'cod' ? (o.payment_status === 'paid' ? <Bi k="paid" /> : <Bi k="cashOnDelivery" />) : o.payment_status}
         </p>
@@ -323,6 +326,7 @@ function OrderCard({ o, onChanged, onCancel }: { o: VendorOrder; onChanged: () =
 }
 
 function CancelSheet({ order, onClose, onDone }: { order: VendorOrder | null; onClose: () => void; onDone: () => void }) {
+  const tt = useT();
   const [reason, setReason] = useState<DictKey | null>(null);
   const [other, setOther] = useState('');
   const [busy, setBusy] = useState(false);
@@ -359,7 +363,7 @@ function CancelSheet({ order, onClose, onDone }: { order: VendorOrder | null; on
               className={cx('min-h-14 rounded-2xl border-2 px-4 text-left text-lg font-semibold', reason === k ? 'border-terracotta-500 bg-terracotta-50' : 'border-cream-300 bg-white')}><Bi k={k} /></button>
           ))}
         </div>
-        {reason === 'reasonOther' && <Input value={other} onChange={(e) => setOther(e.target.value)} maxLength={300} placeholder="…" aria-label={t('reasonOther').en} autoFocus />}
+        {reason === 'reasonOther' && <Input value={other} onChange={(e) => setOther(e.target.value)} maxLength={300} placeholder="…" aria-label={tt('reasonOther')} autoFocus />}
       </div>
     </Modal>
   );

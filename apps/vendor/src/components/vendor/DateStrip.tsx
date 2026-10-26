@@ -1,7 +1,7 @@
-import { cx, t } from '@gharka/ui';
+import { cx, useLang, useT } from '@gharka/ui';
 import { dayNum, isoDate, monthShort, weekday } from '../../lib/dates';
 
-/** Horizontal strip of days. "Today"/"Tomorrow" show in English + Hindi. */
+/** Horizontal strip of days. "Today"/"Tomorrow" follow the chosen language. */
 export function DateStrip({ value, onChange, from = 0, days = 7, counts }: {
   value: string;
   onChange: (d: string) => void;
@@ -9,6 +9,8 @@ export function DateStrip({ value, onChange, from = 0, days = 7, counts }: {
   days?: number;
   counts?: Record<string, number>;
 }) {
+  const tt = useT();
+  const [lang] = useLang();
   const today = isoDate(0);
   const tomorrow = isoDate(1);
   return (
@@ -22,10 +24,7 @@ export function DateStrip({ value, onChange, from = 0, days = 7, counts }: {
             className={cx('relative flex min-h-[4.5rem] min-w-[4.6rem] shrink-0 flex-col items-center justify-center rounded-2xl border-2 px-2.5 py-1 transition',
               active ? 'border-terracotta-500 bg-terracotta-500 text-white shadow-soft' : 'border-cream-300 bg-white/80 text-ink')}>
             {special ? (
-              <>
-                <span className="font-hand text-2xl leading-6">{t(special).en}</span>
-                <span className="font-devanagari text-xs leading-4 opacity-80" lang="hi">{t(special).hi}</span>
-              </>
+              <span className={cx('leading-6', lang === 'hi' ? 'font-devanagari text-xl font-bold' : 'font-hand text-2xl')} lang={lang}>{tt(special)}</span>
             ) : (
               <>
                 <span className="text-base font-bold leading-6">{weekday(d)}</span>

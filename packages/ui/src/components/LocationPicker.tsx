@@ -17,7 +17,6 @@ type Props = {
   /** Where to centre the map before a pin exists (e.g. the locality centroid). */
   fallbackCenter?: LatLng;
   height?: number | string;
-  bilingual?: boolean;
   /** When a pin already exists, show a one-line "Location pinned / Change" row until the user taps Change. */
   collapsed?: boolean;
 };
@@ -47,14 +46,13 @@ function ClickToPlace({ onPick }: { onPick: (p: LatLng) => void }) {
 }
 
 /** "Use my location" + place search (backend /geo/search) + draggable pin. */
-export function LocationPicker({ value, onChange, fallbackCenter, height = 320, bilingual, collapsed }: Props) {
+export function LocationPicker({ value, onChange, fallbackCenter, height = 320, collapsed }: Props) {
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [active, setActive] = useState(false);
-  const mode = bilingual ? 'both' : 'en';
   const start = value ?? fallbackCenter ?? brand.map.center;
 
   const pick = (pos: LatLng) => { setExpanded(true); onChange(pos); };
@@ -70,8 +68,8 @@ export function LocationPicker({ value, onChange, fallbackCenter, height = 320, 
     return (
       <div className="flex min-h-14 items-center gap-3 rounded-2xl border-2 border-leaf-500 bg-leaf-50 px-4">
         <Icon.Pin className="h-5 w-5 shrink-0 text-leaf-700" />
-        <span className="flex-1 font-semibold text-leaf-700"><Bi k="locationPinned" only={mode} /> ✓</span>
-        <Button variant="outline" onClick={() => setExpanded(true)}><Bi k="changeLocation" only={mode} /></Button>
+        <span className="flex-1 font-semibold text-leaf-700"><Bi k="locationPinned" /> ✓</span>
+        <Button variant="outline" onClick={() => setExpanded(true)}><Bi k="changeLocation" /></Button>
       </div>
     );
   }
@@ -106,7 +104,7 @@ export function LocationPicker({ value, onChange, fallbackCenter, height = 320, 
   return (
     <div className="space-y-3">
       <Button variant="secondary" size="xl" block onClick={locate} loading={busy}>
-        <Icon.Pin className="h-5 w-5" /> <Bi k="useMyLocation" only={mode} />
+        <Icon.Pin className="h-5 w-5" /> <Bi k="useMyLocation" />
       </Button>
 
       <form onSubmit={search} className="flex gap-2">
@@ -114,7 +112,7 @@ export function LocationPicker({ value, onChange, fallbackCenter, height = 320, 
           <Input aria-label="Search a place" placeholder="Search a place or landmark" value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
         <Button type="submit" variant="outline" className="shrink-0" disabled={busy || query.trim().length < 3}>
-          <Bi k="findPlace" only={mode} />
+          <Bi k="findPlace" />
         </Button>
       </form>
       {msg && <p className="text-sm text-terracotta-600" role="status">{msg}</p>}
@@ -143,11 +141,11 @@ export function LocationPicker({ value, onChange, fallbackCenter, height = 320, 
         </MapContainer>
         {!active && (
           <button type="button" onClick={() => setActive(true)} className="absolute inset-0 z-[1000] flex items-end justify-center bg-transparent pb-3">
-            <span className="rounded-full bg-black/70 px-4 py-2 text-sm font-semibold text-white"><Bi k="tapToMovePin" only={mode} /></span>
+            <span className="rounded-full bg-black/70 px-4 py-2 text-sm font-semibold text-white"><Bi k="tapToMovePin" /></span>
           </button>
         )}
       </div>
-      <p className="text-sm text-ink-muted"><Bi k="dragPin" only={mode} /></p>
+      <p className="text-sm text-ink-muted"><Bi k="dragPin" /></p>
     </div>
   );
 }

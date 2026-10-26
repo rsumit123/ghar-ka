@@ -97,7 +97,7 @@ function AboutStep({ onDone }: { onDone: () => void }) {
       <section>
         <div className="mb-2 flex items-center gap-2">
           <h2 className="text-sm font-semibold text-ink-soft"><Bi k="kitchenLocation" /></h2>
-          <span className="font-hand text-lg text-ink-muted"><Bi k="optional" only="en" /></span>
+          <span className="font-hand text-lg text-ink-muted"><Bi k="optional" /></span>
         </div>
         {!mapOpen ? (
           <div className="flex gap-2">
@@ -107,7 +107,7 @@ function AboutStep({ onDone }: { onDone: () => void }) {
           </div>
         ) : (
           <div className="space-y-2">
-            <LocationPicker bilingual value={pos} onChange={setPos} fallbackCenter={chosen ? { lat: chosen.lat, lng: chosen.lng } : undefined} height={280} />
+            <LocationPicker value={pos} onChange={setPos} fallbackCenter={chosen ? { lat: chosen.lat, lng: chosen.lng } : undefined} height={280} />
             <Button variant="ghost" onClick={() => { setMapOpen(false); setPos(null); }}><Bi k="skip" /></Button>
           </div>
         )}

@@ -9,19 +9,16 @@ import { Input } from './Input';
 type Props = {
   role: 'customer' | 'vendor';
   onSuccess?: (user: User) => void;
-  /** Show Hindi alongside English (vendor app) or English only (customer app). */
-  bilingual?: boolean;
 };
 
 /** Phone → 6-digit code login, shared by both apps. */
-export function OtpLogin({ role, onSuccess, bilingual = false }: Props) {
+export function OtpLogin({ role, onSuccess }: Props) {
   const { setUser } = useAuth();
   const [step, setStep] = useState<'phone' | 'code'>('phone');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const mode = bilingual ? 'both' : 'en';
 
   async function run(fn: () => Promise<void>) {
     setBusy(true);
@@ -52,34 +49,34 @@ export function OtpLogin({ role, onSuccess, bilingual = false }: Props) {
       {step === 'phone' ? (
         <form onSubmit={requestCode} className="space-y-4">
           <Input
-            label={<Bi k="phone" only={mode} />} prefix="+91" size="lg" type="tel" inputMode="numeric"
+            label={<Bi k="phone" />} prefix="+91" size="lg" type="tel" inputMode="numeric"
             autoComplete="tel-national" placeholder="98765 43210" autoFocus value={phone}
             onChange={(e) => setPhone(e.target.value)} error={error}
           />
           <Button type="submit" size="xl" block loading={busy} disabled={phone.replace(/\D/g, '').length < 10}>
-            <Bi k="sendCode" only={mode} />
+            <Bi k="sendCode" />
           </Button>
         </form>
       ) : (
         <form onSubmit={verify} className="space-y-4">
           <p className="text-ink-soft">
-            <Bi k="codeSentTo" only={mode} /> <strong className="text-ink">+91 {phone}</strong>
+            <Bi k="codeSentTo" /> <strong className="text-ink">+91 {phone}</strong>
           </p>
           <Input
-            label={<Bi k="enterCode" only={mode} />} size="lg" inputMode="numeric" autoComplete="one-time-code"
+            label={<Bi k="enterCode" />} size="lg" inputMode="numeric" autoComplete="one-time-code"
             maxLength={6} autoFocus value={code} placeholder="••••••"
             className="[&_input]:text-center [&_input]:font-semibold [&_input]:tracking-[0.5em]"
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} error={error}
           />
           <Button type="submit" size="xl" block loading={busy} disabled={code.length < 6}>
-            <Bi k="verify" only={mode} />
+            <Bi k="verify" />
           </Button>
           <div className="flex justify-between text-sm">
             <Button variant="ghost" size="sm" onClick={() => { setStep('phone'); setError(null); }}>
-              <Bi k="changeNumber" only={mode} />
+              <Bi k="changeNumber" />
             </Button>
             <Button variant="ghost" size="sm" disabled={busy} onClick={() => requestCode()}>
-              <Bi k="resend" only={mode} />
+              <Bi k="resend" />
             </Button>
           </div>
         </form>

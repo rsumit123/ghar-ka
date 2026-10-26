@@ -24,8 +24,8 @@ function Home() {
   const { me } = useVendor();
   return (
     <Page header={<SiteHeader />} narrow>
-      <p className="font-hand text-2xl text-terracotta-600"><Bi k="youAreLive" only="en" /></p>
-      <h1 className="mb-5 font-serif text-3xl font-bold"><Bi k="hello" only="hi" /> {me.display_name}</h1>
+      <p className="font-hand text-2xl text-terracotta-600"><Bi k="youAreLive" /></p>
+      <h1 className="mb-5 font-serif text-3xl font-bold"><Bi k="hello" /> {me.display_name}</h1>
       <div className="grid grid-cols-2 gap-4">
         {TILES.map((tile) => (
           <Link key={tile.to} to={tile.to}

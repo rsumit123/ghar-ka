@@ -14,7 +14,7 @@ export default function Login() {
 
   return (
     <Page header={<SiteHeader />} narrow title={<Bi k="vendorLoginTitle" />}>
-      <PhoneLogin role="vendor" bilingual onSuccess={() => navigate(from, { replace: true })} />
+      <PhoneLogin role="vendor" onSuccess={() => navigate(from, { replace: true })} />
       <p className="mt-6 text-center text-sm text-ink-muted">
         <Link to="/admin/login" className="underline">Admin? <Bi k="adminLogin" /></Link>
       </p>

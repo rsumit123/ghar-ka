@@ -1,4 +1,4 @@
-import { api, ApiError, Bi, Button, Card, cx, DietMark, EmptyState, Icon, mediaUrl, Page, Spinner, t } from '@gharka/ui';
+import { api, ApiError, Bi, Button, Card, cx, DietMark, EmptyState, Icon, mediaUrl, Page, Spinner, useT } from '@gharka/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SiteHeader } from '../../components/SiteHeader';
@@ -11,6 +11,7 @@ import type { Offering, Slot } from '../../lib/types';
 import { useVendor } from '../../lib/useVendor';
 
 export default function Menu() {
+  const tt = useT();
   const { me } = useVendor();
   const [date, setDate] = useState(isoDate(0));
   const [slot, setSlot] = useState<Slot>('lunch');
@@ -49,9 +50,9 @@ export default function Menu() {
       const prev = isoDate(-1, new Date(`${date}T12:00:00Z`));
       const r = await api.post<{ created: Offering[]; skipped: number }>('/vendor/offerings/copy', { from_date: prev, to_dates: [date] });
       await load();
-      setNotice(r.created.length ? { ok: true, text: `${t('copiedDishes').en}: ${r.created.length}` } : { ok: false, text: t('nothingToCopy').en });
+      setNotice(r.created.length ? { ok: true, text: `${tt('copiedDishes')}: ${r.created.length}` } : { ok: false, text: tt('nothingToCopy') });
     } catch (e) {
-      setNotice({ ok: false, text: e instanceof ApiError ? (e.status === 404 ? t('nothingToCopy').en : e.detail) : 'Error' });
+      setNotice({ ok: false, text: e instanceof ApiError ? (e.status === 404 ? tt('nothingToCopy') : e.detail) : 'Error' });
     } finally {
       setCopying(false);
     }
@@ -68,10 +69,10 @@ export default function Menu() {
       const r = await api.post<{ created: Offering[]; skipped: number }>('/vendor/offerings/copy', { from_date: date, to_dates: restOfWeek, slot });
       await load();
       setNotice(r.created.length
-        ? { ok: true, text: `${t('copiedDishes').en}: ${r.created.length}${r.skipped ? ` · ${t('copySkipped').en}: ${r.skipped}` : ''}` }
-        : { ok: false, text: t('nothingToCopy').en });
+        ? { ok: true, text: `${tt('copiedDishes')}: ${r.created.length}${r.skipped ? ` · ${tt('copySkipped')}: ${r.skipped}` : ''}` }
+        : { ok: false, text: tt('nothingToCopy') });
     } catch (e) {
-      setNotice({ ok: false, text: e instanceof ApiError ? (e.status === 404 ? t('nothingToCopy').en : e.detail) : 'Error' });
+      setNotice({ ok: false, text: e instanceof ApiError ? (e.status === 404 ? tt('nothingToCopy') : e.detail) : 'Error' });
     } finally {
       setCopying(false);
     }
@@ -113,6 +114,7 @@ export default function Menu() {
 }
 
 function DishCard({ o, onEdit }: { o: Offering; onEdit: () => void }) {
+  const tt = useT();
   const pct = o.portions_total ? Math.min(100, Math.round((o.portions_sold / o.portions_total) * 100)) : 100;
   const soldOut = o.portions_left === 0;
   return (
@@ -127,12 +129,12 @@ function DishCard({ o, onEdit }: { o: Offering; onEdit: () => void }) {
           </div>
           <p className="text-lg font-bold">{rupees(o.price)}</p>
         </div>
-        <Button variant="outline" size="md" onClick={onEdit} aria-label={`${t('editDish').en}: ${o.dish_name}`}>✏️</Button>
+        <Button variant="outline" size="md" onClick={onEdit} aria-label={`${tt('editDish')}: ${o.dish_name}`}>✏️</Button>
       </div>
       <div className="mt-3">
         <div className="flex items-baseline justify-between text-base font-semibold">
-          <span>{o.portions_sold} <Bi k="of" only="en" /> {o.portions_total} <Bi k="soldCount" /></span>
-          {o.is_open ? <span className="font-hand text-2xl leading-5 text-terracotta-600"><Bi k="orderBy" only="en" /> {cutoffText(o.cutoff_at, o.date)}</span>
+          <span>{o.portions_sold} <Bi k="of" /> {o.portions_total} <Bi k="soldCount" /></span>
+          {o.is_open ? <span className="font-hand text-2xl leading-5 text-terracotta-600"><Bi k="orderBy" /> {cutoffText(o.cutoff_at, o.date)}</span>
             : <span className="rounded-full bg-ink px-3 py-0.5 text-sm text-cream"><Bi k={soldOut ? 'soldOut' : 'closed'} /></span>}
         </div>
         <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-cream-200" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
