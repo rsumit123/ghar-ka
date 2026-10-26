@@ -3,10 +3,15 @@ import { brand } from './brand';
 /** Value the backend requires on multipart endpoints (CSRF defence). */
 export const CSRF_HEADER = { 'X-Requested-With': 'gharka' } as const;
 
-/** Which site this is ('customer' | 'vendor'); sent as X-App so each site keeps its own login cookie. */
-let appName: string | undefined;
-export function setApiApp(name: 'customer' | 'vendor') { appName = name; }
-export const appHeaders = (): Record<string, string> => (appName ? { 'X-App': appName } : {});
+/** Which site this is ('customer' | 'vendor' | 'admin'); sent as X-App so each keeps its own login cookie.
+ *  A function is read on every request (the vendor site hosts /admin too). */
+type AppName = 'customer' | 'vendor' | 'admin';
+let appName: AppName | (() => AppName) | undefined;
+export function setApiApp(name: AppName | (() => AppName)) { appName = name; }
+export const appHeaders = (): Record<string, string> => {
+  const name = typeof appName === 'function' ? appName() : appName;
+  return name ? { 'X-App': name } : {};
+};
 
 export class ApiError extends Error {
   constructor(public status: number, public detail: string, public raw?: unknown) {

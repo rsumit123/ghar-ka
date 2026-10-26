@@ -5,7 +5,8 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 
-setApiApp('vendor');
+// Admin lives under /admin on this site but keeps its own login, so a cook tab and an admin tab can be open together.
+setApiApp(() => (window.location.pathname.startsWith('/admin') ? 'admin' : 'vendor'));
 document.title = brand.name;
 
 createRoot(document.getElementById('root')!).render(

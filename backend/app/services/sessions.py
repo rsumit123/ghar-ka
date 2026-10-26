@@ -42,9 +42,10 @@ def delete_user_sessions(db: Session, user_id: int) -> None:
     db.commit()
 
 
-# Each site sends `X-App: customer|vendor` and gets its own cookie, so being a cook on the vendor site and a customer on
-# the customer site (both on the shared COOKIE_DOMAIN) don't overwrite each other. No header -> the plain COOKIE_NAME.
-APPS = ("customer", "vendor")
+# Each site sends `X-App: customer|vendor|admin` and gets its own cookie, so being a cook on the vendor site, a customer on
+# the customer site and the admin under /admin (all on the shared COOKIE_DOMAIN) don't overwrite each other.
+# No header -> the plain COOKIE_NAME.
+APPS = ("customer", "vendor", "admin")
 
 
 def app_of(request: Request) -> str | None:

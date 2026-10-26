@@ -39,12 +39,17 @@ def test_logout_only_affects_one_site(client, shared_mode):
     assert me(client, "vendor").json()["role"] == "vendor"
 
 
-def test_admin_login_uses_vendor_cookie_and_plain_links_work(client, make_user):
+def test_admin_and_cook_sessions_coexist_and_plain_links_work(client, make_user, shared_mode):
     make_user(Role.admin, email="a@x.in", password_hash=hash_password("pw-12345678"))
-    r = client.post("/api/v1/auth/admin/login", headers={"X-App": "vendor"}, json={"email": "a@x.in", "password": "pw-12345678"})
-    assert r.status_code == 200
-    assert me(client, "customer").status_code == 401  # the customer site isn't logged in as admin
-    assert me(client).json()["role"] == "admin"  # no header (e.g. an admin document link) falls back to the vendor cookie
+    login(client, "vendor", "vendor")
+    r = client.post("/api/v1/auth/admin/login", headers={"X-App": "admin"}, json={"email": "a@x.in", "password": "pw-12345678"})
+    assert r.status_code == 200 and f"{get_settings().COOKIE_NAME}_admin=" in r.headers["set-cookie"]
+    assert me(client, "vendor").json()["role"] == "vendor"  # the cook's tab stays logged in
+    assert me(client, "admin").json()["role"] == "admin"
+    assert me(client, "customer").status_code == 401
+    assert me(client).json()["role"] == "admin"  # no header (e.g. an admin document link) prefers the admin cookie
+    client.post("/api/v1/auth/logout", headers={"X-App": "admin"})
+    assert me(client, "vendor").json()["role"] == "vendor"
 
 
 def test_unknown_app_header_uses_plain_cookie(client, shared_mode):

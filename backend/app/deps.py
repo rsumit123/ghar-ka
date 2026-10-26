@@ -18,7 +18,10 @@ def get_session_token(request: Request) -> str | None:
     if app := app_of(request):
         return request.cookies.get(cookie_name(app))
     # No X-App header: plain links (admin document links on the vendor site) and API clients/tests.
-    return request.cookies.get(cookie_name("vendor")) or request.cookies.get(cookie_name(None))
+    for app in ("admin", "vendor", None):
+        if token := request.cookies.get(cookie_name(app)):
+            return token
+    return None
 
 
 def get_optional_user(request: Request, db: DbDep) -> User | None:
