@@ -144,7 +144,7 @@ function Body({ plan, vendor, onClose }: { plan: Plan; vendor: VendorProfile; on
                 <textarea id="sub-addr" rows={2} value={address} onChange={(e) => setAddress(e.target.value)} maxLength={400}
                   placeholder="Flat / house no., building, landmark" className="w-full rounded-xl border-2 border-cream-300 bg-white px-4 py-3 text-base focus:border-turmeric-500" />
               </div>
-              <LocationPicker value={pos} onChange={setPos} height={220}
+              <LocationPicker collapsed value={pos} onChange={setPos} height={220}
                 fallbackCenter={vendor.lat !== null && vendor.lng !== null ? { lat: vendor.lat, lng: vendor.lng } : undefined} />
               {options.deliveryWhy && <p className="text-sm font-medium text-terracotta-600" role="alert">{options.deliveryWhy}</p>}
             </div>

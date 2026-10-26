@@ -148,7 +148,7 @@ export default function Checkout() {
                   className="w-full rounded-xl border-2 border-cream-300 bg-white px-4 py-3 text-base focus:border-turmeric-500" />
               </div>
               <p className="text-sm font-semibold text-ink-soft">Pin the exact spot</p>
-              <LocationPicker value={pos} onChange={setPos} height={260}
+              <LocationPicker collapsed value={pos} onChange={setPos} height={260}
                 fallbackCenter={vendor.lat !== null && vendor.lng !== null ? { lat: vendor.lat, lng: vendor.lng } : undefined} />
               {pos && options.dist !== null && !options.deliveryWhy && <p className="text-sm font-medium text-leaf-700">✓ About {options.dist.toFixed(1)} km from {vendor.display_name}. Delivery is available here.</p>}
               {options.deliveryWhy && <p className="text-sm font-medium text-terracotta-600" role="alert">{options.deliveryWhy}</p>}
@@ -160,14 +160,16 @@ export default function Checkout() {
             <Input label="Anything the cook should know? (optional)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder="Less spicy, no onion…" />
           </section>
 
-          <section className="mt-6">
-            <h2 className="font-serif text-xl font-bold">Payment</h2>
-            <PaymentOptions method={method} onChange={setMethod} />
-          </section>
+          {brand.razorpayEnabled && (
+            <section className="mt-6">
+              <h2 className="font-serif text-xl font-bold">Payment</h2>
+              <PaymentOptions method={method} onChange={setMethod} />
+            </section>
+          )}
 
           <div className="mt-6 rounded-2xl bg-white/70 px-4 py-3">
             <div className="flex items-center justify-between text-lg"><span className="font-semibold">Total ({cartCount(cart)} items)</span><span className="font-serif text-2xl font-bold">{rupees(cartTotal(cart))}</span></div>
-            <p className="text-sm text-ink-muted">{method === 'cod' ? <>Pay {rupees(cartTotal(cart))} in cash when you {fulfilment === 'pickup' ? 'pick up' : 'receive'} your food.</> : <>You&apos;ll pay online next. Unpaid orders are released after a few minutes.</>}</p>
+            <p className="text-sm text-ink-muted">{method === 'cod' ? <>Pay cash on delivery: {rupees(cartTotal(cart))} when you {fulfilment === 'pickup' ? 'pick up' : 'receive'} your food.</> : <>You&apos;ll pay online next. Unpaid orders are released after a few minutes.</>}</p>
           </div>
           {blocked && <p className="mt-3 text-sm font-medium text-terracotta-600">{blocked}</p>}
           {error && <p className="mt-3 rounded-xl bg-terracotta-50 p-3 font-medium text-terracotta-700" role="alert">{error}</p>}
