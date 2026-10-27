@@ -18,11 +18,11 @@ export function DateChips({ value, onChange, marked }: { value: string; onChange
           <button
             key={d} type="button" role="tab" aria-selected={active} onClick={() => onChange(d)}
             className={cx(
-              'relative flex min-h-[4.25rem] min-w-[4.5rem] shrink-0 flex-col items-center justify-center rounded-2xl border-2 px-3 py-1.5 transition',
+              'relative flex min-h-[3.75rem] min-w-[4.25rem] sm:min-h-[4.25rem] sm:min-w-[4.5rem] shrink-0 flex-col items-center justify-center rounded-2xl border-2 px-3 py-1.5 transition',
               active ? 'border-terracotta-500 bg-terracotta-500 text-white shadow-soft' : 'border-cream-300 bg-white/80 text-ink hover:border-turmeric-400',
             )}
           >
-            <span className={cx(special ? 'font-hand text-2xl leading-6' : 'text-sm font-semibold leading-6')}>{dayLabel(d)}</span>
+            <span className={cx(special ? 'font-hand text-xl sm:text-2xl leading-6' : 'text-sm font-semibold leading-6')}>{dayLabel(d)}</span>
             <span className={cx('text-xs leading-4', active ? 'text-white/85' : 'text-ink-muted')}>{dayNum(d)} {monthShort(d)}</span>
             {marked?.has(d) && !active && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-leaf-500" aria-label="Has a menu" />}
           </button>

@@ -39,7 +39,7 @@ export function Page({ header, title, subtitle, children, narrow, className }: {
       {header}
       <main className={cx('mx-auto w-full flex-1 px-4 py-6 sm:py-8', narrow ? 'max-w-md' : 'max-w-5xl', className)}>
         {title && (
-          <div className="mb-5">
+          <div className="mb-4 sm:mb-5">
             <h1 className="text-3xl font-bold">{title}</h1>
             {subtitle && <p className="mt-1 text-ink-soft">{subtitle}</p>}
           </div>

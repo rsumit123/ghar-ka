@@ -13,12 +13,12 @@ const variants: Record<ButtonVariant, string> = {
   danger: 'bg-terracotta-500 text-white hover:bg-terracotta-600 active:bg-terracotta-700 shadow-soft',
 };
 
-/** sm 40px · md 48px (min tap target) · lg 52px · xl 56px (primary actions for cooks) */
+/** sm 40px · md 48px (min tap target) · lg 48px phone / 52px · xl 52px phone / 56px (primary actions for cooks) */
 const sizes: Record<ButtonSize, string> = {
   sm: 'min-h-10 px-3 text-sm',
   md: 'min-h-12 px-5 text-base',
-  lg: 'min-h-[52px] px-6 text-lg',
-  xl: 'min-h-14 px-7 text-xl',
+  lg: 'min-h-12 sm:min-h-[52px] px-5 sm:px-6 text-lg',
+  xl: 'min-h-[52px] sm:min-h-14 px-6 sm:px-7 text-xl',
 };
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

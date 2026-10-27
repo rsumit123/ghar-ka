@@ -39,12 +39,12 @@ module.exports = {
       },
       // Bilingual labels double text length, so larger sizes shrink on phones (same as Tailwind defaults from 640px up).
       fontSize: {
-        lg: [fluid(17, 18), { lineHeight: '1.55' }],
-        xl: [fluid(18, 20), { lineHeight: '1.4' }],
-        '2xl': [fluid(20, 24), { lineHeight: '1.3' }],
-        '3xl': [fluid(24, 30), { lineHeight: '1.2' }],
-        '4xl': [fluid(28, 36), { lineHeight: '1.12' }],
-        '5xl': [fluid(34, 48), { lineHeight: '1' }],
+        lg: [fluid(16, 18), { lineHeight: '1.55' }],
+        xl: [fluid(17, 20), { lineHeight: '1.4' }],
+        '2xl': [fluid(19, 24), { lineHeight: '1.3' }],
+        '3xl': [fluid(22, 30), { lineHeight: '1.2' }],
+        '4xl': [fluid(26, 36), { lineHeight: '1.12' }],
+        '5xl': [fluid(30, 48), { lineHeight: '1' }],
       },
       minHeight: { tap: '3rem', 'tap-lg': '3.5rem' },
     },

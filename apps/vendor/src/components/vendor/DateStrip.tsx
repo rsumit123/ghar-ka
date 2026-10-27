@@ -21,10 +21,10 @@ export function DateStrip({ value, onChange, from = 0, days = 7, counts }: {
         const n = counts?.[d] ?? 0;
         return (
           <button key={d} type="button" role="tab" aria-selected={active} onClick={() => onChange(d)}
-            className={cx('relative flex min-h-[4.5rem] min-w-[4.6rem] shrink-0 flex-col items-center justify-center rounded-2xl border-2 px-2.5 py-1 transition',
+            className={cx('relative flex min-h-16 min-w-[4.25rem] sm:min-h-[4.5rem] sm:min-w-[4.6rem] shrink-0 flex-col items-center justify-center rounded-2xl border-2 px-2.5 py-1 transition',
               active ? 'border-terracotta-500 bg-terracotta-500 text-white shadow-soft' : 'border-cream-300 bg-white/80 text-ink')}>
             {special ? (
-              <span className={cx('leading-6', lang === 'hi' ? 'font-devanagari text-xl font-bold' : 'font-hand text-2xl')} lang={lang}>{tt(special)}</span>
+              <span className={cx('leading-6', lang === 'hi' ? 'font-devanagari text-lg font-bold sm:text-xl' : 'font-hand text-xl sm:text-2xl')} lang={lang}>{tt(special)}</span>
             ) : (
               <>
                 <span className="text-base font-bold leading-6">{weekday(d)}</span>

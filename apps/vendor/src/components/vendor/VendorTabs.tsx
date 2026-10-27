@@ -15,7 +15,7 @@ export function VendorTabs() {
     <nav className="mb-4 grid grid-cols-4 gap-2" aria-label="Orders, menu, plans and delivery">
       {TABS.map((i) => (
         <NavLink key={i.to} to={i.to}
-          className={({ isActive }) => cx('flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1 py-1.5 text-center text-sm font-bold leading-tight',
+          className={({ isActive }) => cx('flex min-h-12 sm:min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1 py-1.5 text-center text-sm font-bold leading-tight',
             isActive ? 'border-ink bg-ink text-cream' : 'border-cream-300 bg-white/70 text-ink-soft')}>
           {i.icon}<span><Bi k={i.k} /></span>
         </NavLink>
