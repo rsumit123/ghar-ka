@@ -52,7 +52,26 @@ export default function AdminUsers() {
       {!users && !err && <Spinner className="h-8 w-8" />}
       {users && users.length === 0 && <Card><EmptyState title="No users yet" hint="Add a cook or customer above." /></Card>}
       {users && users.length > 0 && (
-        <Card padded={false} className="overflow-x-auto">
+        <>
+        <ul className="space-y-2 sm:hidden">
+          {users.map((u) => (
+            <li key={u.id}>
+              <Card className="!p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{u.name || '—'}</p>
+                    <p className="text-sm">{u.phone}</p>
+                  </div>
+                  <Badge tone={u.role === 'vendor' ? 'turmeric' : 'neutral'}>{ROLE_LABEL[u.role]}</Badge>
+                </div>
+                <p className="mt-1 text-xs text-ink-muted">
+                  Password: {u.has_password ? 'Set' : 'None (signed up by SMS)'} · Added {fmtDateTime(u.created_at)}
+                </p>
+              </Card>
+            </li>
+          ))}
+        </ul>
+        <Card padded={false} className="hidden overflow-x-auto sm:block">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-cream-200 text-xs uppercase tracking-wide text-ink-muted">
               <tr><th className="p-3">Name</th><th className="p-3">Mobile</th><th className="p-3">Role</th><th className="p-3">Password</th><th className="p-3">Added</th></tr>
@@ -70,6 +89,7 @@ export default function AdminUsers() {
             </tbody>
           </table>
         </Card>
+        </>
       )}
     </>
   );

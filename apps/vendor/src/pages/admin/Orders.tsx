@@ -46,9 +46,9 @@ export default function AdminOrders() {
   return (
     <>
       <h1 className="mb-4 text-3xl font-bold">Orders</h1>
-      <Card className="mb-4 space-y-3">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <label className="block text-sm font-semibold text-ink-soft">Vendor
+      <Card className="mb-4 space-y-2 !p-3 sm:space-y-3 sm:!p-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
+          <label className="col-span-2 block text-sm font-semibold text-ink-soft sm:col-span-1">Vendor
             <select className={cx(selectCls, 'mt-1 font-normal')} value={vendorId} onChange={(e) => set({ vendor_id: e.target.value })}>
               <option value="">All vendors</option>
               {vendors.map((v) => <option key={v.id} value={v.id}>{v.display_name}</option>)}

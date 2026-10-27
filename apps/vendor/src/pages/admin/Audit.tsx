@@ -39,10 +39,10 @@ export default function AdminAudit() {
               ))}
             </ul>
           </Card>
-          <div className="mt-4 flex items-center justify-between">
-            <Button variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>← Newer</Button>
-            <span className="text-sm text-ink-soft">Page {page} of {pages} · {data.total} entries</span>
-            <Button variant="outline" disabled={page >= pages} onClick={() => setPage(page + 1)}>Older →</Button>
+          <div className="mt-4 flex items-center justify-between gap-2">
+            <Button variant="outline" size="sm" className="whitespace-nowrap" disabled={page <= 1} onClick={() => setPage(page - 1)}>← Newer</Button>
+            <span className="min-w-0 text-center text-xs text-ink-soft sm:text-sm">Page {page} of {pages} · {data.total} {data.total === 1 ? 'entry' : 'entries'}</span>
+            <Button variant="outline" size="sm" className="whitespace-nowrap" disabled={page >= pages} onClick={() => setPage(page + 1)}>Older →</Button>
           </div>
         </>
       )}
